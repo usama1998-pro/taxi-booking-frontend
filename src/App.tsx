@@ -145,6 +145,7 @@ function App() {
               </p>
 
               <h3>How much are Barcelona Airport taxis?</h3>
+              <div className="price-table-wrap">
               <table className="price-table">
                 <thead>
                   <tr>
@@ -199,6 +200,7 @@ function App() {
                   </tr>
                 </tbody>
               </table>
+              </div>
 
               <h4 className="section-title">Barcelona Airport taxi price</h4>
               <p>
