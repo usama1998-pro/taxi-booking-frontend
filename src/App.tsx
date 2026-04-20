@@ -1,17 +1,50 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+
+import { QuoteForm } from '@/components/QuoteForm'
 import './App.css'
 
+const HERO_BG_IMAGES = [
+  '/assets/barcelona.jpg',
+  '/assets/barcelona2.jpg',
+  '/assets/barcelona3.jpg',
+] as const
+
+const HERO_BG_INTERVAL_MS = 5500
+
 function App() {
-  const [isReturnTrip, setIsReturnTrip] = useState(false)
+  const [heroBgIndex, setHeroBgIndex] = useState(0)
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setHeroBgIndex((i) => (i + 1) % HERO_BG_IMAGES.length)
+    }, HERO_BG_INTERVAL_MS)
+    return () => window.clearInterval(id)
+  }, [])
 
   return (
     <main className="page">
+      <div className="hero-bg-crossfade" aria-hidden="true">
+        <div className="hero-bg-slides">
+          {HERO_BG_IMAGES.map((src, i) => (
+            <img
+              key={src}
+              src={src}
+              alt=""
+              className={i === heroBgIndex ? 'is-active' : ''}
+              decoding="async"
+              fetchPriority={i === 0 ? 'high' : 'low'}
+            />
+          ))}
+        </div>
+        <div className="hero-bg-overlay" />
+      </div>
+
       <header className="top-nav">
         <div className="brand">
           <span className="brand-badge" aria-hidden="true">
             WP
           </span>
-          <span className="brand-name">Welcome Pickups</span>
+          <span className="brand-name">Taxi Barcelona</span>
         </div>
         <nav className="menu" aria-label="Primary">
           <a href="/">Transfers</a>
@@ -28,38 +61,63 @@ function App() {
       </header>
 
       <section className="layout">
-        <div className="content-column">
-          <section className="hero-section">
-            <div className="hero-left">
+        <section className="hero-section">
+          <div className="hero-left">
+            <div className="hero-body">
               <h1>Barcelona Airport Taxi</h1>
 
               <ul className="benefits">
                 <li>
-                  <span className="benefit-icon">V</span>
+                  <span className="benefit-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <circle cx="12" cy="9" r="5" />
+                      <path d="M9 14l3 6 3-6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
                   <h2>Trained Drivers</h2>
-                  <p>Hand picked and English-speaking professionals.</p>
+                  <p>Hand picked &amp; english speaking drivers.</p>
                 </li>
                 <li>
-                  <span className="benefit-icon">$</span>
+                  <span className="benefit-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="3" y="6" width="18" height="12" rx="2" />
+                      <path d="M7 10h10M7 14h6" />
+                    </svg>
+                  </span>
                   <h2>Low Prices</h2>
-                  <p>Same price as a regular city taxi line.</p>
+                  <p>Same price as a regular Taxi from the line.</p>
                 </li>
                 <li>
-                  <span className="benefit-icon">O</span>
+                  <span className="benefit-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7v5l3 2" />
+                    </svg>
+                  </span>
                   <h2>Flight Monitoring</h2>
-                  <p>Drivers are always on time for your arrival.</p>
+                  <p>Drivers are always on time.</p>
                 </li>
                 <li>
-                  <span className="benefit-icon">?</span>
-                  <h2>24/7 Support</h2>
-                  <p>Email and phone support, any time you need help.</p>
+                  <span className="benefit-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M4 14v2a3 3 0 003 3h1M20 14v2a3 3 0 01-3 3h-1M7 14a5 5 0 0110 0v5H7v-5z"
+                      />
+                    </svg>
+                  </span>
+                  <h2>Quality Support</h2>
+                  <p>24/7 Email &amp; Phone support.</p>
                 </li>
               </ul>
-
-              <p className="breadcrumbs">Airport taxi &gt; Barcelona &gt; Barcelona Airport Taxi</p>
             </div>
-          </section>
 
+            <p className="breadcrumbs">Airport taxi &gt; Barcelona &gt; Barcelona Airport Taxi</p>
+          </div>
+        </section>
+
+        <div className="content-column">
           <section className="info-section">
             <div className="share-rail" aria-label="Social share">
               <span>Share</span>
@@ -378,112 +436,187 @@ function App() {
                   after landing with tired children and full luggage.
                 </p>
               </section>
+
+              <section className="article-faq" aria-labelledby="faq-heading">
+                <div className="article-faq-panel">
+                  <div className="article-faq-inner">
+                    <h2 id="faq-heading" className="faq-title">
+                      Frequently asked questions
+                    </h2>
+
+                    <div className="faq-item">
+                      <h3 className="faq-question">How far is Barcelona Airport from the city center?</h3>
+                      <p className="faq-answer">
+                        Barcelona-El Prat International Airport (BCN) is about 15 km from the city
+                        center. By car or taxi the journey usually takes around 20 minutes, depending on
+                        traffic. A taxi from the airport to the city center typically costs between EUR 25
+                        and EUR 35, though the exact fare can vary with time of day and route.
+                      </p>
+                    </div>
+
+                    <div className="faq-item">
+                      <h3 className="faq-question">Do you tip Barcelona Airport taxi drivers?</h3>
+                      <p className="faq-answer">
+                        Tipping is not obligatory for airport taxis in Barcelona, but it is appreciated.
+                        If your driver was especially helpful or you had a great ride, rounding up the fare
+                        is a simple way to say thanks.
+                      </p>
+                    </div>
+
+                    <div className="faq-item">
+                      <h3 className="faq-question">Can I flag down a taxi at Barcelona Airport?</h3>
+                      <p className="faq-answer">
+                        You cannot hail a taxi from the kerb inside the airport complex. Head to the
+                        official taxi rank and join the queue. If you need a wheelchair-accessible vehicle
+                        or a larger taxi, ask the rank attendant and they can help assign a suitable
+                        vehicle.
+                      </p>
+                    </div>
+
+                    <div className="faq-item">
+                      <h3 className="faq-question">Do taxis at Barcelona Airport take credit card?</h3>
+                      <p className="faq-answer">
+                        Many taxis accept card payments, but not all vehicles are equipped with terminals.
+                        It is best to ask your driver before you start the trip whether they can take card
+                        or prefer cash.
+                      </p>
+                    </div>
+
+                    <div className="faq-item">
+                      <h3 className="faq-question">Is it easy to get a taxi from Barcelona Airport?</h3>
+                      <p className="faq-answer">
+                        Yes. Official taxis are available at the designated ranks for most of the day and
+                        night. At peak times you may wait a little longer in the queue, but the system is
+                        straightforward and clearly signposted from arrivals.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
             </article>
           </section>
         </div>
 
-        <aside className="quote-card" aria-label="Get a price quote form">
-          <h2>Get a price quote</h2>
-          <div className="trip-toggle">
-            <button
-              type="button"
-              className={!isReturnTrip ? 'active' : ''}
-              onClick={() => setIsReturnTrip(false)}
-            >
-              One Way
-            </button>
-            <button
-              type="button"
-              className={isReturnTrip ? 'active' : ''}
-              onClick={() => setIsReturnTrip(true)}
-            >
-              Return
-            </button>
-          </div>
-
-          <div className="field">Barcelona-El Prat International Airport (BCN)</div>
-          <div className="field">To (airport, port, address)</div>
-          <div className="field">Add departure date and time</div>
-          {isReturnTrip ? <div className="field">Add return date and time</div> : null}
-
-          <div className="counter-row">
-            <div className="counter-field">
-              <span className="counter-label">Passengers</span>
-              <div className="counter-box">
-                <button type="button">-</button>
-                <span>1</span>
-                <button type="button">+</button>
-              </div>
-            </div>
-            <div className="counter-field">
-              <span className="counter-label">Luggage pieces</span>
-              <div className="counter-box">
-                <button type="button">-</button>
-                <span>1</span>
-                <button type="button">+</button>
-              </div>
-            </div>
-          </div>
-
-          <button type="button" className="continue-btn">
-            Continue
-          </button>
-        </aside>
+        <QuoteForm />
       </section>
 
-      <section className="faq-section" aria-labelledby="faq-heading">
-        <div className="faq-inner">
-          <h2 id="faq-heading" className="faq-title">
-            Frequently asked questions
-          </h2>
+      <footer className="site-footer">
+        <div className="footer-inner">
+          <div className="footer-grid">
+            <div className="footer-col footer-brand-col">
+              <div className="footer-logo">
+                <span className="footer-logo-icon" aria-hidden="true">
+                  W
+                </span>
+                <span className="footer-logo-text">Welcome</span>
+              </div>
+              <a href="/" className="footer-help-btn">
+                <span className="footer-help-icon" aria-hidden="true">
+                  ?
+                </span>
+                Help
+              </a>
+            </div>
 
-          <div className="faq-item">
-            <h3 className="faq-question">How far is Barcelona Airport from the city center?</h3>
-            <p className="faq-answer">
-              Barcelona-El Prat International Airport (BCN) is about 15 km from the city center. By
-              car or taxi the journey usually takes around 20 minutes, depending on traffic. A taxi
-              from the airport to the city center typically costs between EUR 25 and EUR 35, though
-              the exact fare can vary with time of day and route.
-            </p>
+            <div className="footer-col">
+              <h3 className="footer-heading">Mobile app</h3>
+              <div className="footer-app-badges">
+                <a href="/" className="app-badge app-badge-apple">
+                  Download on the App Store
+                </a>
+                <a href="/" className="app-badge app-badge-google">
+                  GET IT ON Google Play
+                </a>
+              </div>
+            </div>
+
+            <div className="footer-col">
+              <h3 className="footer-heading">About</h3>
+              <ul className="footer-links">
+                <li>
+                  <a href="/">Company</a>
+                </li>
+                <li>
+                  <a href="/">Blog</a>
+                </li>
+                <li>
+                  <a href="/">Newsroom</a>
+                </li>
+                <li>
+                  <a href="/">Terms of Use</a>
+                </li>
+                <li>
+                  <a href="/">Privacy Policy</a>
+                </li>
+                <li>
+                  <a href="/">Welcome Rewards</a>
+                </li>
+                <li>
+                  <a href="/">Refer a friend</a>
+                </li>
+                <li>
+                  <a href="/">Careers</a>
+                </li>
+                <li>
+                  <a href="/">Cookie Settings</a>
+                </li>
+              </ul>
+            </div>
+
+            <div className="footer-col">
+              <h3 className="footer-heading">Network</h3>
+              <ul className="footer-links">
+                <li>
+                  <a href="/">Hotels</a>
+                </li>
+                <li>
+                  <a href="/">Vacation Rentals</a>
+                </li>
+                <li>
+                  <a href="/">Affiliates</a>
+                </li>
+                <li>
+                  <a href="/">Individual Drivers</a>
+                </li>
+                <li>
+                  <a href="/">Driver Companies</a>
+                </li>
+              </ul>
+            </div>
+
+            <div className="footer-col">
+              <h3 className="footer-heading">Payment methods</h3>
+              <p className="footer-payment-text">All Credit Cards Accepted</p>
+              <p className="footer-payment-text">PayPal</p>
+              <p className="footer-checkout">Checkout.com</p>
+            </div>
           </div>
 
-          <div className="faq-item">
-            <h3 className="faq-question">Do you tip Barcelona Airport taxi drivers?</h3>
-            <p className="faq-answer">
-              Tipping is not obligatory for airport taxis in Barcelona, but it is appreciated. If
-              your driver was especially helpful or you had a great ride, rounding up the fare is a
-              simple way to say thanks.
+          <div className="footer-bottom">
+            <p className="footer-contact">
+              Barcelona Airport Taxi - Welcome Pickups - Phone: +34 932 200 239, Barcelona, Spain
             </p>
-          </div>
-
-          <div className="faq-item">
-            <h3 className="faq-question">Can I flag down a taxi at Barcelona Airport?</h3>
-            <p className="faq-answer">
-              You cannot hail a taxi from the kerb inside the airport complex. Head to the official
-              taxi rank and join the queue. If you need a wheelchair-accessible vehicle or a larger
-              taxi, ask the rank attendant and they can help assign a suitable vehicle.
-            </p>
-          </div>
-
-          <div className="faq-item">
-            <h3 className="faq-question">Do taxis at Barcelona Airport take credit card?</h3>
-            <p className="faq-answer">
-              Many taxis accept card payments, but not all vehicles are equipped with terminals. It
-              is best to ask your driver before you start the trip whether they can take card or
-              prefer cash.
-            </p>
-          </div>
-
-          <div className="faq-item">
-            <h3 className="faq-question">Is it easy to get a taxi from Barcelona Airport?</h3>
-            <p className="faq-answer">
-              Yes. Official taxis are available at the designated ranks for most of the day and
-              night. At peak times you may wait a little longer in the queue, but the system is
-              straightforward and clearly signposted from arrivals.
-            </p>
+            <div className="footer-social" aria-label="Social media">
+              <a href="/" className="footer-social-link" aria-label="X">
+                X
+              </a>
+              <a href="/" className="footer-social-link" aria-label="Facebook">
+                f
+              </a>
+              <a href="/" className="footer-social-link" aria-label="Instagram">
+                in
+              </a>
+              <a href="/" className="footer-social-link" aria-label="Dribbble">
+                D
+              </a>
+              <a href="/" className="footer-social-link" aria-label="LinkedIn">
+                Li
+              </a>
+            </div>
+            <p className="footer-copy">&copy; 2011 - 2026 All rights reserved.</p>
           </div>
         </div>
-      </section>
+      </footer>
     </main>
   )
 }
