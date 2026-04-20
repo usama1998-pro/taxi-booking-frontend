@@ -3,7 +3,6 @@
   background: #f4f6fa;
   position: relative;
   cursor: default;
-  overflow-x: hidden;
 }
 
 /* Browsers use the I-beam over heading text; keep arrow to match the rest of the page chrome */
@@ -168,7 +167,6 @@
   position: relative;
   z-index: 1;
   box-sizing: border-box;
-  overflow: hidden;
 }
 
 .content-column {
@@ -678,22 +676,26 @@
 
 .quote-card {
   grid-area: quote;
-  align-self: start;
+  align-self: stretch;
   justify-self: stretch;
   width: 100%;
   max-width: 380px;
-  margin-top: 12px;
-  background: #fff;
+  background: transparent;
   color: #1a2942;
+  color-scheme: light;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.quote-card-inner {
+  position: sticky;
+  top: 24px;
+  background: #fff;
   border-radius: 8px;
   padding: 28px 28px 26px;
   box-shadow: 0 16px 48px rgba(15, 23, 42, 0.18);
   border: 1px solid rgba(15, 23, 42, 0.06);
-  position: sticky;
-  top: 24px;
-  color-scheme: light;
   box-sizing: border-box;
-  min-width: 0;
 }
 
 .quote-card h2 {
@@ -1127,10 +1129,11 @@
   }
 
   .quote-card {
-    align-self: stretch;
     max-width: none;
+  }
+
+  .quote-card-inner {
     position: static;
-    margin-top: 0;
   }
 
   .info-section {
@@ -1188,10 +1191,6 @@
 
 /* ─── Mobile ─── */
 @media (max-width: 640px) {
-  .page {
-    overflow-x: hidden;
-  }
-
   .top-nav {
     padding: 14px 16px 0;
     gap: 12px;
@@ -1339,7 +1338,7 @@
     font-size: 15px;
   }
 
-  .quote-card {
+  .quote-card-inner {
     padding: 22px 18px 20px;
   }
 

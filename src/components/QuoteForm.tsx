@@ -63,6 +63,7 @@ export function QuoteForm() {
 
   return (
     <aside className="quote-card" aria-label="Get a price quote form">
+      <div className="quote-card-inner">
       <h2>Get a price quote</h2>
 
       <Form {...form}>
@@ -224,6 +225,7 @@ export function QuoteForm() {
           </button>
         </form>
       </Form>
+      </div>
     </aside>
   )
 }
