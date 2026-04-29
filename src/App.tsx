@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 
-import { QuoteForm } from '@/components/QuoteForm'
+import { BookingDetailsPage } from '@/components/BookingDetailsPage'
+import { BookingSuccessPage } from '@/components/BookingSuccessPage'
+import type { BookingSuccessPayload } from '@/lib/bookingsApi'
+import { QuoteForm, type QuoteFormValues } from '@/components/QuoteForm'
 import './App.css'
 
 const HERO_BG_IMAGES = [
@@ -13,6 +16,9 @@ const HERO_BG_INTERVAL_MS = 5500
 
 function App() {
   const [heroBgIndex, setHeroBgIndex] = useState(0)
+  const [draftQuote, setDraftQuote] = useState<QuoteFormValues | null>(null)
+  const [showBookingDetails, setShowBookingDetails] = useState(false)
+  const [bookingSuccess, setBookingSuccess] = useState<BookingSuccessPayload | null>(null)
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -20,6 +26,29 @@ function App() {
     }, HERO_BG_INTERVAL_MS)
     return () => window.clearInterval(id)
   }, [])
+
+  if (bookingSuccess) {
+    return (
+      <BookingSuccessPage
+        data={bookingSuccess}
+        onBookAnother={() => {
+          setBookingSuccess(null)
+          setDraftQuote(null)
+          setShowBookingDetails(false)
+        }}
+      />
+    )
+  }
+
+  if (showBookingDetails && draftQuote) {
+    return (
+      <BookingDetailsPage
+        quote={draftQuote}
+        onBack={() => setShowBookingDetails(false)}
+        onBookingSuccess={(payload) => setBookingSuccess(payload)}
+      />
+    )
+  }
 
   return (
     <main className="page">
@@ -499,7 +528,13 @@ function App() {
           </section>
         </div>
 
-        <QuoteForm />
+        <QuoteForm
+          initialValues={draftQuote}
+          onContinue={(values) => {
+            setDraftQuote(values)
+            setShowBookingDetails(true)
+          }}
+        />
       </section>
 
       <footer className="site-footer">
