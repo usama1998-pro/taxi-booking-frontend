@@ -44,7 +44,9 @@ function buildSummaryText(data: BookingSuccessPayload): string {
   const bookingRef = `BK-${data.uuid}`
   const lines: string[] = [`Booking number: ${bookingRef}`]
   if (data.driver) {
-    lines.push(`Driver: ${data.driver.name ?? 'Your driver'}`)
+    lines.push(
+      `Driver: ${data.driver.name?.trim() || data.driver.email || 'Assigned driver'}`,
+    )
     lines.push(`Phone: ${data.driver.phone}`)
     if (data.driver.email) {
       lines.push(`Email: ${data.driver.email}`)
@@ -75,7 +77,8 @@ export function BookingSuccessPage({ data, onBookAnother }: BookingSuccessPagePr
     if (ok) setCopied(key)
   }, [])
 
-  const driverLabel = driver?.name?.trim() || 'Your driver'
+  const driverLabel =
+    driver?.name?.trim() || driver?.email?.trim() || 'Assigned driver'
 
   return (
     <main className="booking-page booking-success-page">
