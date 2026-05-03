@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { BookingDetailsPage } from '@/components/BookingDetailsPage'
 import { BookingSuccessPage } from '@/components/BookingSuccessPage'
+import { CurrencyMenu } from '@/components/CurrencyMenu'
 import type { BookingSuccessPayload } from '@/lib/bookingsApi'
 import { QuoteForm, type QuoteFormValues } from '@/components/QuoteForm'
 import './App.css'
@@ -85,6 +86,7 @@ function App() {
         </nav>
         <div className="menu-right">
           <a href="/">EN</a>
+          <CurrencyMenu variant="hero" />
           <a href="/">Help</a>
         </div>
       </header>

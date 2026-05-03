@@ -12,6 +12,8 @@ export type CreateBookingResult = {
   assignmentMessage?: string;
   /** Present when the backend assigned a driver to this booking. */
   driver: AssignedDriverSummary | null;
+  /** Echo from server; null if none requested. */
+  childSeatsSummary: string | null;
 };
 
 /** Shown after a successful booking: driver set when the API assigned one. */
@@ -19,6 +21,7 @@ export type BookingSuccessPayload = {
   uuid: string;
   assignmentMessage?: string;
   driver: AssignedDriverSummary | null;
+  childSeatsSummary?: string | null;
 };
 
 export type BookingDetailsValues = {
@@ -27,6 +30,9 @@ export type BookingDetailsValues = {
   email: string;
   phone: string;
   note?: string;
+  infantCarrierCount?: number;
+  childSeatCount?: number;
+  boosterCount?: number;
 };
 
 const DEFAULT_API_BASE = "http://localhost:3000";
@@ -47,11 +53,18 @@ function toIsoOrNow(datetimeLocalValue: string | undefined): string {
   return parsed.toISOString();
 }
 
-function estimatePrice(values: QuoteFormValues): number {
+export function estimatePriceFromPassengersAndLuggage(
+  passengers: number,
+  luggage: number,
+): number {
   const base = 44;
-  const passengerExtra = Math.max(0, values.passengers - 1) * 6;
-  const luggageExtra = values.luggage * 2;
+  const passengerExtra = Math.max(0, passengers - 1) * 6;
+  const luggageExtra = luggage * 2;
   return base + passengerExtra + luggageExtra;
+}
+
+export function estimatePrice(values: QuoteFormValues): number {
+  return estimatePriceFromPassengersAndLuggage(values.passengers, values.luggage);
 }
 
 function coerceNonEmptyString(value: unknown): string | null {
@@ -64,6 +77,27 @@ function coerceNonEmptyString(value: unknown): string | null {
     return t.length > 0 ? t : null;
   }
   return null;
+}
+
+export function formatChildSeatsSummaryLine(
+  infant: number,
+  child: number,
+  booster: number,
+): string | null {
+  if (!infant && !child && !booster) {
+    return null;
+  }
+  const parts: string[] = [];
+  if (infant > 0) {
+    parts.push(`${infant} infant carrier${infant === 1 ? "" : "s"}`);
+  }
+  if (child > 0) {
+    parts.push(`${child} child seat${child === 1 ? "" : "s"}`);
+  }
+  if (booster > 0) {
+    parts.push(`${booster} booster${booster === 1 ? "" : "s"}`);
+  }
+  return parts.join(", ");
 }
 
 function parseAssignedDriver(raw: unknown): AssignedDriverSummary | null {
@@ -98,6 +132,9 @@ export async function createBookingFromForms(
       status: "PENDING",
       luggageCount: quote.luggage,
       passengerCount: quote.passengers,
+      infantCarrierCount: details.infantCarrierCount ?? 0,
+      childSeatCount: details.childSeatCount ?? 0,
+      boosterCount: details.boosterCount ?? 0,
       note: details.note?.trim() || undefined,
     }),
   });
@@ -107,6 +144,9 @@ export async function createBookingFromForms(
     uuid?: string;
     assignmentMessage?: string;
     driver?: unknown;
+    infantCarrierCount?: unknown;
+    childSeatCount?: unknown;
+    boosterCount?: unknown;
   } | null;
 
   if (!res.ok) {
@@ -117,6 +157,12 @@ export async function createBookingFromForms(
   if (!json?.uuid) {
     throw new Error("Booking created but no booking uuid was returned.");
   }
+  const infant =
+    typeof json.infantCarrierCount === "number" ? json.infantCarrierCount : 0;
+  const childN =
+    typeof json.childSeatCount === "number" ? json.childSeatCount : 0;
+  const booster =
+    typeof json.boosterCount === "number" ? json.boosterCount : 0;
   return {
     uuid: json.uuid,
     assignmentMessage:
@@ -124,5 +170,6 @@ export async function createBookingFromForms(
         ? json.assignmentMessage
         : undefined,
     driver: parseAssignedDriver(json.driver),
+    childSeatsSummary: formatChildSeatsSummaryLine(infant, childN, booster),
   };
 }

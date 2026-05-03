@@ -55,6 +55,9 @@ function buildSummaryText(data: BookingSuccessPayload): string {
   if (data.assignmentMessage) {
     lines.push(data.assignmentMessage)
   }
+  if (data.childSeatsSummary) {
+    lines.push(`Child seats: ${data.childSeatsSummary}`)
+  }
   return lines.join('\n')
 }
 
@@ -118,6 +121,13 @@ export function BookingSuccessPage({ data, onBookAnother }: BookingSuccessPagePr
               </Button>
             </div>
           </div>
+
+          {data.childSeatsSummary ? (
+            <div className="success-copy-block">
+              <div className="success-copy-label">Child seats</div>
+              <p className="success-child-seats">{data.childSeatsSummary}</p>
+            </div>
+          ) : null}
 
           {driver ? (
             <div className="success-copy-block">

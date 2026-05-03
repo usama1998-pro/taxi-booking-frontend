@@ -42,21 +42,30 @@ type QuoteFormProps = {
 
 const defaultPickup = 'Barcelona-El Prat International Airport (BCN)'
 
+const quoteFormEmpty: QuoteFormValues = {
+  tripType: 'oneWay',
+  pickup: defaultPickup,
+  dropoff: '',
+  departureAt: '',
+  returnAt: '',
+  passengers: 1,
+  luggage: 1,
+}
+
+function mergeQuoteInitial(initial?: QuoteFormValues | null): QuoteFormValues {
+  if (!initial) {
+    return { ...quoteFormEmpty }
+  }
+  return { ...quoteFormEmpty, ...initial }
+}
+
 const inputClassName =
   'quote-field-input !box-border !min-h-[48px] !w-full !min-w-0 !max-w-full !block !rounded-[12px] !border !border-[#d5dee9] !bg-white !px-[14px] !py-[13px] !text-sm !text-[#152032] !shadow-none md:!text-sm placeholder:!text-[#8b97a8]'
 
 export function QuoteForm({ onContinue, initialValues }: QuoteFormProps) {
   const form = useForm<QuoteFormValues>({
     resolver: zodResolver(quoteFormSchema),
-    defaultValues: initialValues ?? {
-      tripType: 'oneWay',
-      pickup: defaultPickup,
-      dropoff: '',
-      departureAt: '',
-      returnAt: '',
-      passengers: 1,
-      luggage: 1,
-    },
+    defaultValues: mergeQuoteInitial(initialValues),
   })
 
   const tripType = form.watch('tripType')

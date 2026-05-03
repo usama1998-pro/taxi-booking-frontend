@@ -1,13 +1,23 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 
 import type { QuoteFormValues } from '@/components/QuoteForm'
+import { CurrencyMenu } from '@/components/CurrencyMenu'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { useDisplayCurrency } from '@/context/DisplayCurrencyContext'
 import {
   createBookingFromForms,
+  estimatePrice,
+  formatChildSeatsSummaryLine,
   type BookingSuccessPayload,
 } from '@/lib/bookingsApi'
+import {
+  BOOKING_BASE_CURRENCY,
+  formatEurBase,
+  formatEurInDisplayCurrency,
+} from '@/lib/displayCurrency'
+import { cn } from '@/lib/utils'
 
 type BookingDetailsPageProps = {
   quote: QuoteFormValues
@@ -183,6 +193,42 @@ const PHONE_CODES = [
 
 type PhoneCodeOption = (typeof PHONE_CODES)[number]
 
+const CHILD_SEAT_MAX = 4
+
+function ChildSeatCounter({
+  title,
+  subtitle,
+  value,
+  onChange,
+}: {
+  title: string
+  subtitle: string
+  value: number
+  onChange: (n: number) => void
+}) {
+  return (
+    <div className="booking-child-seat-row">
+      <div className="booking-child-seat-labels">
+        <span className="booking-child-seat-title">{title}</span>
+        <span className="booking-child-seat-sub">{subtitle}</span>
+      </div>
+      <div className="booking-child-seat-counter">
+        <button type="button" onClick={() => onChange(Math.max(0, value - 1))} aria-label={`Decrease ${title}`}>
+          -
+        </button>
+        <span aria-live="polite">{value}</span>
+        <button
+          type="button"
+          onClick={() => onChange(Math.min(CHILD_SEAT_MAX, value + 1))}
+          aria-label={`Increase ${title}`}
+        >
+          +
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function formatPhoneCodeLabel(option: PhoneCodeOption): string {
   return `${option.flag} ${option.country} (${option.dialCode})`
 }
@@ -204,18 +250,12 @@ function formatRouteDate(datetimeLocalValue: string | undefined): string {
   }).format(date)
 }
 
-function estimatePrice(quote: QuoteFormValues): number {
-  const base = 44
-  const passengerExtra = Math.max(0, quote.passengers - 1) * 6
-  const luggageExtra = quote.luggage * 2
-  return base + passengerExtra + luggageExtra
-}
-
 export function BookingDetailsPage({
   quote,
   onBack,
   onBookingSuccess,
 }: BookingDetailsPageProps) {
+  const { currency } = useDisplayCurrency()
   const [flightNumber, setFlightNumber] = useState('')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -224,14 +264,59 @@ export function BookingDetailsPage({
   const [phoneCodeQuery, setPhoneCodeQuery] = useState(formatPhoneCodeLabel(initialCode))
   const [phoneCodeOpen, setPhoneCodeOpen] = useState(false)
   const [phone, setPhone] = useState('')
-  const [note, setNote] = useState('')
-  const [agree, setAgree] = useState(true)
+  const [addChildSeats, setAddChildSeats] = useState(false)
+  const [infantCarrierCount, setInfantCarrierCount] = useState(0)
+  const [childSeatCount, setChildSeatCount] = useState(0)
+  const [boosterCount, setBoosterCount] = useState(0)
+  const [addDriverNotes, setAddDriverNotes] = useState(false)
+  const [bulkyLuggage, setBulkyLuggage] = useState(false)
+  const [wheelchairAccessible, setWheelchairAccessible] = useState(false)
+  const [driverNoteManuscript, setDriverNoteManuscript] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const phoneCodePickerRef = useRef<HTMLDivElement | null>(null)
 
   const estimatedPrice = useMemo(() => estimatePrice(quote), [quote])
   const routeDate = useMemo(() => formatRouteDate(quote.departureAt), [quote.departureAt])
+  const tripChildSeatsChip = useMemo(
+    () => formatChildSeatsSummaryLine(infantCarrierCount, childSeatCount, boosterCount),
+    [infantCarrierCount, childSeatCount, boosterCount],
+  )
+
+  const driverNoteAutoPart = useMemo(
+    () =>
+      [wheelchairAccessible && 'Wheelchair accessible vehicle:', bulkyLuggage && 'Bulky luggage:']
+        .filter(Boolean)
+        .join(' '),
+    [wheelchairAccessible, bulkyLuggage],
+  )
+
+  const driverNoteCombined = useMemo(() => {
+    const head = driverNoteAutoPart
+    const tail = driverNoteManuscript
+    if (!head) {
+      return tail
+    }
+    if (!tail.trim()) {
+      return head.endsWith(' ') ? head : `${head} `
+    }
+    return `${head.trimEnd()} ${tail.replace(/^\s+/, '')}`
+  }, [driverNoteAutoPart, driverNoteManuscript])
+
+  function onDriverNoteTextareaChange(raw: string) {
+    const ap = driverNoteAutoPart
+    if (ap) {
+      if (raw.startsWith(ap)) {
+        setDriverNoteManuscript(raw.slice(ap.length).replace(/^\s*/, ''))
+        return
+      }
+      if (raw.startsWith(ap.trimEnd())) {
+        setDriverNoteManuscript(raw.slice(ap.trimEnd().length).replace(/^\s*/, ''))
+        return
+      }
+    }
+    setDriverNoteManuscript(raw)
+  }
   const filteredPhoneCodes = useMemo(() => {
     const query = phoneCodeQuery.trim().toLowerCase()
     if (!query) return PHONE_CODES
@@ -265,10 +350,6 @@ export function BookingDetailsPage({
       setError('Please fill in your full name, email, and phone number.')
       return
     }
-    if (!agree) {
-      setError('Please agree to receive updates via email and sms.')
-      return
-    }
 
     setIsSubmitting(true)
     try {
@@ -277,12 +358,16 @@ export function BookingDetailsPage({
         fullName: fullName.trim(),
         email: email.trim(),
         phone: `${phoneCode.dialCode} ${phone.trim()}`.trim(),
-        note: note.trim(),
+        note: addDriverNotes ? driverNoteCombined.trim() : '',
+        infantCarrierCount: addChildSeats ? infantCarrierCount : 0,
+        childSeatCount: addChildSeats ? childSeatCount : 0,
+        boosterCount: addChildSeats ? boosterCount : 0,
       })
       onBookingSuccess({
         uuid: result.uuid,
         assignmentMessage: result.assignmentMessage,
         driver: result.driver,
+        childSeatsSummary: result.childSeatsSummary,
       })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to submit booking.'
@@ -294,119 +379,250 @@ export function BookingDetailsPage({
 
   return (
     <main className="booking-page">
+      <header className="booking-page-nav">
+        <div className="booking-page-nav-inner">
+          <div className="booking-page-brand">
+            <span className="booking-page-brand-badge" aria-hidden="true">
+              WP
+            </span>
+            <span className="booking-page-brand-name">Taxi Barcelona</span>
+          </div>
+          <nav className="booking-page-nav-actions" aria-label="Site utilities">
+            <a href="/">EN</a>
+            <CurrencyMenu variant="surface" />
+            <a href="/">Help</a>
+          </nav>
+        </div>
+      </header>
       <section className="booking-container">
         <div className="booking-left">
           <Button type="button" variant="ghost" className="booking-back-btn" onClick={onBack}>
-            ← Back
+            ← Back to quote
           </Button>
-          <h1 className="booking-heading">Booking Details</h1>
+          <p className="booking-eyebrow">Review &amp; confirm</p>
+          <h1 className="booking-heading">Booking details</h1>
+          <p className="booking-lead">
+            Add your flight if you have one, your contact details, and anything the driver should
+            know.
+          </p>
           <div className="booking-meta-chips" aria-label="Trip quick facts">
             <span className="booking-chip">
               {quote.passengers} passenger{quote.passengers > 1 ? 's' : ''}
             </span>
             <span className="booking-chip">{quote.luggage} luggage</span>
-            <span className="booking-chip">{routeDate}</span>
+            {tripChildSeatsChip ? (
+              <span className="booking-chip">{tripChildSeatsChip}</span>
+            ) : null}
+            <span className="booking-chip booking-chip--accent">{routeDate}</span>
           </div>
 
           <form onSubmit={submitFinalBooking} className="booking-form">
-            <label className="booking-field booking-field-full">
-              <span>Flight number (optional)</span>
-              <Input
-                value={flightNumber}
-                onChange={(e) => setFlightNumber(e.target.value)}
-                placeholder="e.g. VY1451"
-              />
-            </label>
+            <section
+              className="booking-form-section"
+              aria-labelledby="booking-section-trip"
+            >
+              <h2 id="booking-section-trip" className="booking-form-section-title">
+                Flight &amp; seating
+              </h2>
+              <label className="booking-field booking-field-full">
+                <span>Flight number (optional)</span>
+                <Input
+                  value={flightNumber}
+                  onChange={(e) => setFlightNumber(e.target.value)}
+                  placeholder="e.g. VY1451"
+                  className="booking-input-enhanced"
+                />
+              </label>
 
-            <label className="booking-field">
-              <span>Your full name *</span>
-              <Input
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Enter your full name"
-                required
-              />
-            </label>
-
-            <label className="booking-field">
-              <span>Your email *</span>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-              />
-            </label>
-
-            <label className="booking-field">
-              <span>Your phone number * </span>
-              <div className="booking-phone-row">
-                <div className="booking-phone-code-picker" ref={phoneCodePickerRef}>
-                  <Input
-                    value={phoneCodeQuery}
-                    className="booking-phone-code-input"
-                    aria-label="Search country code"
-                    placeholder="Search country code"
-                    onFocus={() => setPhoneCodeOpen(true)}
+              <div className="booking-child-seats-section">
+                <p className="booking-subsection-title">Child seats</p>
+                <p className="booking-subsection-hint">
+                  Request infant carriers, child seats, or boosters for this trip. You can skip this
+                  if not needed.
+                </p>
+                <label className="booking-check booking-field-full booking-child-seats-toggle">
+                  <input
+                    type="checkbox"
+                    checked={addChildSeats}
                     onChange={(e) => {
-                      setPhoneCodeQuery(e.target.value)
-                      setPhoneCodeOpen(true)
-                    }}
-                    onBlur={() => {
-                      window.setTimeout(() => {
-                        if (!phoneCodeOpen) {
-                          setPhoneCodeQuery(formatPhoneCodeLabel(phoneCode))
-                        }
-                      }, 80)
+                      const on = e.target.checked
+                      setAddChildSeats(on)
+                      if (!on) {
+                        setInfantCarrierCount(0)
+                        setChildSeatCount(0)
+                        setBoosterCount(0)
+                      }
                     }}
                   />
-                  {phoneCodeOpen ? (
-                    <div className="booking-phone-code-list" role="listbox" aria-label="Country codes">
-                      {filteredPhoneCodes.length > 0 ? (
-                        filteredPhoneCodes.map((option) => (
-                          <button
-                            key={`${option.iso2}-${option.dialCode}`}
-                            type="button"
-                            className="booking-phone-code-option"
-                            onClick={() => {
-                              setPhoneCode(option)
-                              setPhoneCodeQuery(formatPhoneCodeLabel(option))
-                              setPhoneCodeOpen(false)
-                            }}
-                          >
-                            {formatPhoneCodeLabel(option)}
-                          </button>
-                        ))
-                      ) : (
-                        <div className="booking-phone-code-empty">No country found</div>
-                      )}
-                    </div>
-                  ) : null}
-                </div>
-                <Input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="6XX XXX XXX"
-                  required
-                />
+                  <span>Add child seats</span>
+                </label>
+                {addChildSeats ? (
+                  <div className="booking-child-seats booking-field-full" role="group" aria-label="Child seats">
+                    <ChildSeatCounter
+                      title="Infant carrier"
+                      subtitle="0–6 months"
+                      value={infantCarrierCount}
+                      onChange={setInfantCarrierCount}
+                    />
+                    <ChildSeatCounter
+                      title="Child seat"
+                      subtitle="6 months – 3 years"
+                      value={childSeatCount}
+                      onChange={setChildSeatCount}
+                    />
+                    <ChildSeatCounter
+                      title="Booster"
+                      subtitle="3–12 years"
+                      value={boosterCount}
+                      onChange={setBoosterCount}
+                    />
+                  </div>
+                ) : null}
               </div>
-            </label>
+            </section>
 
-            <label className="booking-field booking-field-full">
-              <span>Extra note</span>
-              <Textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Any special instructions for the driver..."
-                rows={3}
-              />
-            </label>
+            <section
+              className="booking-form-section booking-form-section--grid"
+              aria-labelledby="booking-section-contact"
+            >
+              <h2 id="booking-section-contact" className="booking-form-section-title">
+                Your contact
+              </h2>
+              <label className="booking-field">
+                <span>Full name *</span>
+                <Input
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="As shown on your ID or booking"
+                  required
+                  className="booking-input-enhanced"
+                />
+              </label>
 
-            <label className="booking-check booking-field-full">
-              <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
-              <span>I agree to receive email updates & sms.</span>
-            </label>
+              <label className="booking-field">
+                <span>Email *</span>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  required
+                  className="booking-input-enhanced"
+                />
+              </label>
+
+              <label className="booking-field booking-field-full">
+                <span>Phone number *</span>
+                <div className="booking-phone-row">
+                  <div className="booking-phone-code-picker" ref={phoneCodePickerRef}>
+                    <Input
+                      value={phoneCodeQuery}
+                      className={cn('booking-phone-code-input', 'booking-input-enhanced')}
+                      aria-label="Search country code"
+                      placeholder="Search country code"
+                      onFocus={() => setPhoneCodeOpen(true)}
+                      onChange={(e) => {
+                        setPhoneCodeQuery(e.target.value)
+                        setPhoneCodeOpen(true)
+                      }}
+                      onBlur={() => {
+                        window.setTimeout(() => {
+                          if (!phoneCodeOpen) {
+                            setPhoneCodeQuery(formatPhoneCodeLabel(phoneCode))
+                          }
+                        }, 80)
+                      }}
+                    />
+                    {phoneCodeOpen ? (
+                      <div className="booking-phone-code-list" role="listbox" aria-label="Country codes">
+                        {filteredPhoneCodes.length > 0 ? (
+                          filteredPhoneCodes.map((option) => (
+                            <button
+                              key={`${option.iso2}-${option.dialCode}`}
+                              type="button"
+                              className="booking-phone-code-option"
+                              onClick={() => {
+                                setPhoneCode(option)
+                                setPhoneCodeQuery(formatPhoneCodeLabel(option))
+                                setPhoneCodeOpen(false)
+                              }}
+                            >
+                              {formatPhoneCodeLabel(option)}
+                            </button>
+                          ))
+                        ) : (
+                          <div className="booking-phone-code-empty">No country found</div>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
+                  <Input
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="6XX XXX XXX"
+                    required
+                  />
+                </div>
+              </label>
+
+              <div className="booking-field-full booking-driver-notes-section">
+                <label className="booking-check booking-field-full booking-driver-notes-toggle">
+                  <input
+                    type="checkbox"
+                    checked={addDriverNotes}
+                    onChange={(e) => {
+                      const on = e.target.checked
+                      setAddDriverNotes(on)
+                      if (!on) {
+                        setBulkyLuggage(false)
+                        setWheelchairAccessible(false)
+                        setDriverNoteManuscript('')
+                      }
+                    }}
+                  />
+                  <span>Add notes for the driver</span>
+                </label>
+                {addDriverNotes ? (
+                  <>
+                    <label className="booking-field booking-field-full">
+                      <span className="sr-only">Notes for the driver</span>
+                      <Textarea
+                        value={driverNoteCombined}
+                        onChange={(e) => onDriverNoteTextareaChange(e.target.value)}
+                        placeholder="Type any extra instructions for your driver…"
+                        rows={4}
+                        className="booking-driver-notes-textarea"
+                      />
+                    </label>
+                    <div className="booking-driver-note-options" role="group" aria-label="Quick driver notes">
+                      <label className="booking-driver-option">
+                        <input
+                          type="checkbox"
+                          checked={bulkyLuggage}
+                          onChange={(e) => setBulkyLuggage(e.target.checked)}
+                        />
+                        <span className="booking-driver-option-text">
+                          <span className="booking-driver-option-title">Bulky luggage</span>
+                          <span className="booking-driver-option-sub">
+                            Bikes, snowboards, big boxes, etc.
+                          </span>
+                        </span>
+                      </label>
+                      <label className="booking-driver-option">
+                        <input
+                          type="checkbox"
+                          checked={wheelchairAccessible}
+                          onChange={(e) => setWheelchairAccessible(e.target.checked)}
+                        />
+                        <span className="booking-driver-option-text">
+                          <span className="booking-driver-option-title">Wheelchair accessible vehicle</span>
+                        </span>
+                      </label>
+                    </div>
+                  </>
+                ) : null}
+              </div>
+            </section>
 
             {error ? (
               <p className="booking-error booking-field-full" role="alert">
@@ -425,23 +641,55 @@ export function BookingDetailsPage({
 
         <aside className="booking-right">
           <article className="booking-summary-card">
-            <h2>Ride summary</h2>
-            <p>
-              <strong>From:</strong> {quote.pickup}
-            </p>
-            <p>
-              <strong>To:</strong> {quote.dropoff}
-            </p>
-            <p>
-              <strong>When:</strong> {routeDate}
-            </p>
-            <p>
-              <strong>Passengers:</strong> {quote.passengers}
-            </p>
-            <p>
-              <strong>Luggage:</strong> {quote.luggage}
-            </p>
-            <p className="booking-price">€{estimatedPrice}</p>
+            <header className="booking-summary-header">
+              <h2>Ride summary</h2>
+              <span className="booking-summary-pill" aria-hidden="true">
+                Est.
+              </span>
+            </header>
+            <div className="booking-summary-body">
+              <div className="booking-summary-row">
+                <span className="booking-summary-label">From</span>
+                <span className="booking-summary-value">{quote.pickup}</span>
+              </div>
+              <div className="booking-summary-row">
+                <span className="booking-summary-label">To</span>
+                <span className="booking-summary-value">{quote.dropoff}</span>
+              </div>
+              <div className="booking-summary-row">
+                <span className="booking-summary-label">When</span>
+                <span className="booking-summary-value">{routeDate}</span>
+              </div>
+              <div className="booking-summary-row booking-summary-row--split">
+                <div className="booking-summary-stat" title="Passengers">
+                  <span className="booking-summary-label booking-summary-label--stat">Passengers</span>
+                  <span className="booking-summary-value booking-summary-value--num">
+                    {quote.passengers}
+                  </span>
+                </div>
+                <div className="booking-summary-stat" title="Luggage pieces">
+                  <span className="booking-summary-label booking-summary-label--stat">Luggage</span>
+                  <span className="booking-summary-value booking-summary-value--num">
+                    {quote.luggage}
+                  </span>
+                </div>
+              </div>
+              {tripChildSeatsChip ? (
+                <div className="booking-summary-row">
+                  <span className="booking-summary-label">Child seats</span>
+                  <span className="booking-summary-value">{tripChildSeatsChip}</span>
+                </div>
+              ) : null}
+            </div>
+            <footer className="booking-summary-footer">
+              <p className="booking-price-label">Estimated total</p>
+              <p className="booking-price">{formatEurInDisplayCurrency(estimatedPrice, currency)}</p>
+              {currency !== BOOKING_BASE_CURRENCY ? (
+                <p className="booking-price-eur-hint">
+                  Estimated fare in {BOOKING_BASE_CURRENCY}: {formatEurBase(estimatedPrice)}
+                </p>
+              ) : null}
+            </footer>
           </article>
         </aside>
       </section>
