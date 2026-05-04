@@ -35,11 +35,14 @@ export type BookingDetailsValues = {
   boosterCount?: number;
 };
 
-const DEFAULT_API_BASE = "http://localhost:3000";
-
 function getApiBaseUrl(): string {
-  const raw = import.meta.env.VITE_API_BASE_URL ?? DEFAULT_API_BASE;
-  return raw.replace(/\/$/, "");
+  const raw = import.meta.env.VITE_API_BASE_URL;
+  if (typeof raw !== "string" || !raw.trim()) {
+    throw new Error(
+      "VITE_API_BASE_URL is not set. Define it in frontend/.env (see .env.example).",
+    );
+  }
+  return raw.trim().replace(/\/$/, "");
 }
 
 function toIsoOrNow(datetimeLocalValue: string | undefined): string {
