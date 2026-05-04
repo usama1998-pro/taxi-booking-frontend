@@ -8,10 +8,27 @@ type BookingSuccessPageProps = {
   onBookAnother: () => void
 }
 
-type CopyKey = 'uuid' | 'phone' | 'all' | null
+type CopyKey = 'uuid' | 'phone' | 'email' | 'all' | null
 
 type IconProps = {
   className?: string
+}
+
+function SuccessMarkIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 64 64" aria-hidden="true" className={className}>
+      <circle cx="32" cy="32" r="30" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.2" />
+      <circle cx="32" cy="32" r="26" fill="currentColor" opacity="0.12" />
+      <path
+        d="M20 33.5 27.5 41 44 24.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
 }
 
 function CopyIcon({ className }: IconProps) {
@@ -87,6 +104,9 @@ export function BookingSuccessPage({ data, onBookAnother }: BookingSuccessPagePr
     <main className="booking-page booking-success-page">
       <section className="booking-success-inner">
         <div className="booking-success-hero">
+          <div className="booking-success-icon-wrap" aria-hidden="true">
+            <SuccessMarkIcon className="booking-success-mark" />
+          </div>
           <p className="booking-success-badge" role="status">
             Confirmed
           </p>
@@ -101,22 +121,24 @@ export function BookingSuccessPage({ data, onBookAnother }: BookingSuccessPagePr
         </div>
 
         <article className="booking-success-card" aria-label="Booking details">
-          <div className="success-copy-block">
-            <div className="success-copy-label">Booking number</div>
-            <div className="success-copy-row">
-              <code className="success-mono">{bookingRef}</code>
+          <div className="booking-success-card-accent" aria-hidden="true" />
+
+          <div className="success-copy-block success-copy-block--reference">
+            <div className="success-copy-label">Your booking reference</div>
+            <div className="success-reference-panel">
+              <code className="success-mono success-mono--large">{bookingRef}</code>
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
-                className="success-copy-btn success-copy-btn-icon"
+                size="icon"
+                className="success-copy-btn success-copy-btn-icon text-foreground"
                 aria-label={copied === 'uuid' ? 'Copied booking number' : 'Copy booking number'}
                 onClick={() => void handleCopy('uuid', bookingRef)}
               >
                 {copied === 'uuid' ? (
-                  <CheckIcon className="success-copy-icon is-success" />
+                  <CheckIcon className="success-copy-icon size-5 is-success" />
                 ) : (
-                  <CopyIcon className="success-copy-icon" />
+                  <CopyIcon className="success-copy-icon size-5" />
                 )}
               </Button>
             </div>
@@ -130,58 +152,103 @@ export function BookingSuccessPage({ data, onBookAnother }: BookingSuccessPagePr
           ) : null}
 
           {driver ? (
-            <div className="success-copy-block">
-              <div className="success-copy-label">Driver</div>
+            <div className="success-copy-block success-driver-panel">
+              <div className="success-copy-label">Your driver</div>
               <p className="success-driver-name">{driverLabel}</p>
               <div className="success-copy-label success-copy-label-spaced">Phone</div>
               <div className="success-copy-row">
-                <span className="success-phone">{driver.phone}</span>
+                <a
+                  className="success-phone success-phone-link"
+                  href={`tel:${driver.phone.replace(/[^\d+]/g, '')}`}
+                >
+                  {driver.phone}
+                </a>
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
-                  className="success-copy-btn success-copy-btn-icon"
+                  size="icon"
+                  className="success-copy-btn success-copy-btn-icon text-foreground"
                   aria-label={copied === 'phone' ? 'Copied phone number' : 'Copy phone number'}
                   onClick={() => void handleCopy('phone', driver.phone)}
                 >
                   {copied === 'phone' ? (
-                    <CheckIcon className="success-copy-icon is-success" />
+                    <CheckIcon className="success-copy-icon size-5 is-success" />
                   ) : (
-                    <CopyIcon className="success-copy-icon" />
+                    <CopyIcon className="success-copy-icon size-5" />
                   )}
                 </Button>
               </div>
               {driver.email ? (
                 <>
                   <div className="success-copy-label success-copy-label-spaced">Email</div>
-                  <p className="success-email">{driver.email}</p>
+                  <div className="success-copy-row">
+                    <a className="success-email success-email-link" href={`mailto:${driver.email}`}>
+                      {driver.email}
+                    </a>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="success-copy-btn success-copy-btn-icon"
+                      aria-label={copied === 'email' ? 'Copied email' : 'Copy email address'}
+                      onClick={() => void handleCopy('email', driver.email!)}
+                    >
+                      {copied === 'email' ? (
+                        <CheckIcon className="success-copy-icon size-5 is-success" />
+                      ) : (
+                        <CopyIcon className="success-copy-icon size-5" />
+                      )}
+                    </Button>
+                  </div>
                 </>
               ) : null}
             </div>
           ) : null}
 
           {data.assignmentMessage ? (
-            <p className="booking-success-note">{data.assignmentMessage}</p>
+            <aside className="booking-success-callout" role="note">
+              <span className="booking-success-callout-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
+                  <path
+                    d="M12 10.25V16M12 7.2v.05"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+              <div className="booking-success-callout-body">
+                <p className="booking-success-callout-kicker">From your booking</p>
+                <p className="booking-success-callout-text">{data.assignmentMessage}</p>
+              </div>
+            </aside>
           ) : null}
 
           <div className="success-actions">
             <Button
               type="button"
               variant="secondary"
-              className="success-copy-all"
+              size="lg"
+              className="success-copy-all min-h-11 px-5"
               onClick={() => void handleCopy('all', summary)}
             >
               {copied === 'all' ? (
                 <>
-                  <CheckIcon className="success-copy-icon is-success" /> Copied summary
+                  <CheckIcon className="success-copy-icon size-5 is-success shrink-0" /> Copied summary
                 </>
               ) : (
                 <>
-                  <CopyIcon className="success-copy-icon" /> Copy all details
+                  <CopyIcon className="success-copy-icon size-5 shrink-0" /> Copy all details
                 </>
               )}
             </Button>
-            <Button type="button" className="success-book-again" onClick={onBookAnother}>
+            <Button
+              type="button"
+              size="lg"
+              className="success-book-again min-h-11 px-5"
+              onClick={onBookAnother}
+            >
               Book another ride
             </Button>
           </div>
