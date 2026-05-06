@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 
+import { DateTimeLocalSplit } from '@/components/DateTimeLocalSplit'
 import {
   Form,
   FormControl,
@@ -142,14 +143,15 @@ export function QuoteForm({ onContinue, initialValues }: QuoteFormProps) {
               name="departureAt"
               render={({ field }) => (
                 <FormItem className="quote-form-field">
-                  <FormLabel className="sr-only">Departure date and time</FormLabel>
+                  <FormLabel className="quote-datetime-heading">Pickup date &amp; time</FormLabel>
                   <FormControl>
-                    <Input
-                      type="datetime-local"
-                      autoComplete="off"
-                      className={cn(inputClassName, 'quote-field-datetime')}
-                      {...field}
+                    <DateTimeLocalSplit
                       value={field.value ?? ''}
+                      onChange={field.onChange}
+                      inputClassName={cn(inputClassName, 'quote-field-datetime')}
+                      variant="quote"
+                      dateLabel="Date"
+                      timeLabel="Time"
                     />
                   </FormControl>
                   <FormMessage />
@@ -163,14 +165,15 @@ export function QuoteForm({ onContinue, initialValues }: QuoteFormProps) {
                 name="returnAt"
                 render={({ field }) => (
                   <FormItem className="quote-form-field">
-                    <FormLabel className="sr-only">Return date and time</FormLabel>
+                    <FormLabel className="quote-datetime-heading">Return date &amp; time</FormLabel>
                     <FormControl>
-                      <Input
-                        type="datetime-local"
-                        autoComplete="off"
-                        className={cn(inputClassName, 'quote-field-datetime')}
-                        {...field}
+                      <DateTimeLocalSplit
                         value={field.value ?? ''}
+                        onChange={field.onChange}
+                        inputClassName={cn(inputClassName, 'quote-field-datetime')}
+                        variant="quote"
+                        dateLabel="Date"
+                        timeLabel="Time"
                       />
                     </FormControl>
                     <FormMessage />

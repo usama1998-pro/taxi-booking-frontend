@@ -8,7 +8,7 @@ type BookingSuccessPageProps = {
   onBookAnother: () => void
 }
 
-type CopyKey = 'uuid' | 'phone' | 'email' | 'all' | null
+type CopyKey = 'uuid' | 'all' | null
 
 type IconProps = {
   className?: string
@@ -60,18 +60,6 @@ async function copyToClipboard(text: string): Promise<boolean> {
 function buildSummaryText(data: BookingSuccessPayload): string {
   const bookingRef = `BK-${data.uuid}`
   const lines: string[] = [`Booking number: ${bookingRef}`]
-  if (data.driver) {
-    lines.push(
-      `Driver: ${data.driver.name?.trim() || data.driver.email || 'Assigned driver'}`,
-    )
-    lines.push(`Phone: ${data.driver.phone}`)
-    if (data.driver.email) {
-      lines.push(`Email: ${data.driver.email}`)
-    }
-  }
-  if (data.assignmentMessage) {
-    lines.push(data.assignmentMessage)
-  }
   if (data.childSeatsSummary) {
     lines.push(`Child seats: ${data.childSeatsSummary}`)
   }
@@ -80,8 +68,6 @@ function buildSummaryText(data: BookingSuccessPayload): string {
 
 export function BookingSuccessPage({ data, onBookAnother }: BookingSuccessPageProps) {
   const [copied, setCopied] = useState<CopyKey>(null)
-  const driver = data.driver
-  const assigned = driver != null
 
   const summary = useMemo(() => buildSummaryText(data), [data])
   const bookingRef = `BK-${data.uuid}`
@@ -97,9 +83,6 @@ export function BookingSuccessPage({ data, onBookAnother }: BookingSuccessPagePr
     if (ok) setCopied(key)
   }, [])
 
-  const driverLabel =
-    driver?.name?.trim() || driver?.email?.trim() || 'Assigned driver'
-
   return (
     <main className="booking-page booking-success-page">
       <section className="booking-success-inner">
@@ -110,13 +93,9 @@ export function BookingSuccessPage({ data, onBookAnother }: BookingSuccessPagePr
           <p className="booking-success-badge" role="status">
             Confirmed
           </p>
-          <h1 className="booking-heading booking-success-title">
-            {assigned ? 'Your driver is assigned' : 'Booking received'}
-          </h1>
+          <h1 className="booking-heading booking-success-title">Booking received</h1>
           <p className="booking-success-lead">
-            {assigned
-              ? 'Save your booking number and driver contact details. You can copy each field or copy everything at once.'
-              : 'Save your booking number. We will assign a driver as soon as one is available — you can copy your reference below.'}
+            Save your booking number. You can copy your reference below.
           </p>
         </div>
 
@@ -149,80 +128,6 @@ export function BookingSuccessPage({ data, onBookAnother }: BookingSuccessPagePr
               <div className="success-copy-label">Child seats</div>
               <p className="success-child-seats">{data.childSeatsSummary}</p>
             </div>
-          ) : null}
-
-          {driver ? (
-            <div className="success-copy-block success-driver-panel">
-              <div className="success-copy-label">Your driver</div>
-              <p className="success-driver-name">{driverLabel}</p>
-              <div className="success-copy-label success-copy-label-spaced">Phone</div>
-              <div className="success-copy-row">
-                <a
-                  className="success-phone success-phone-link"
-                  href={`tel:${driver.phone.replace(/[^\d+]/g, '')}`}
-                >
-                  {driver.phone}
-                </a>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="success-copy-btn success-copy-btn-icon text-foreground"
-                  aria-label={copied === 'phone' ? 'Copied phone number' : 'Copy phone number'}
-                  onClick={() => void handleCopy('phone', driver.phone)}
-                >
-                  {copied === 'phone' ? (
-                    <CheckIcon className="success-copy-icon size-5 is-success" />
-                  ) : (
-                    <CopyIcon className="success-copy-icon size-5" />
-                  )}
-                </Button>
-              </div>
-              {driver.email ? (
-                <>
-                  <div className="success-copy-label success-copy-label-spaced">Email</div>
-                  <div className="success-copy-row">
-                    <a className="success-email success-email-link" href={`mailto:${driver.email}`}>
-                      {driver.email}
-                    </a>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="success-copy-btn success-copy-btn-icon"
-                      aria-label={copied === 'email' ? 'Copied email' : 'Copy email address'}
-                      onClick={() => void handleCopy('email', driver.email!)}
-                    >
-                      {copied === 'email' ? (
-                        <CheckIcon className="success-copy-icon size-5 is-success" />
-                      ) : (
-                        <CopyIcon className="success-copy-icon size-5" />
-                      )}
-                    </Button>
-                  </div>
-                </>
-              ) : null}
-            </div>
-          ) : null}
-
-          {data.assignmentMessage ? (
-            <aside className="booking-success-callout" role="note">
-              <span className="booking-success-callout-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
-                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
-                  <path
-                    d="M12 10.25V16M12 7.2v.05"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
-              <div className="booking-success-callout-body">
-                <p className="booking-success-callout-kicker">From your booking</p>
-                <p className="booking-success-callout-text">{data.assignmentMessage}</p>
-              </div>
-            </aside>
           ) : null}
 
           <div className="success-actions">

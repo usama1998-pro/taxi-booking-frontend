@@ -71,19 +71,8 @@ function App() {
 
       <header className="top-nav">
         <div className="brand">
-          <span className="brand-badge" aria-hidden="true">
-            WP
-          </span>
-          <span className="brand-name">Taxi Barcelona</span>
+          <span className="brand-name">BarcelonTaxi24</span>
         </div>
-        <nav className="menu" aria-label="Primary">
-          <a href="/">Transfers</a>
-          <a href="/">Sightseeing Rides</a>
-          <a href="/">Guides</a>
-          <a href="/">For Partners</a>
-          <a href="/">For Drivers</a>
-          <a href="/">Company</a>
-        </nav>
         <div className="menu-right">
           <a href="/">EN</a>
           <CurrencyMenu variant="hero" />
@@ -175,64 +164,6 @@ function App() {
                 connections.
               </p>
 
-              <h3>How much are Barcelona Airport taxis?</h3>
-              <div className="price-table-wrap">
-              <table className="price-table">
-                <thead>
-                  <tr>
-                    <th>Taxi prices</th>
-                    <th>Day time</th>
-                    <th>Night time</th>
-                    <th>Duration</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Barcelona Airport to city center</td>
-                    <td>35 EUR</td>
-                    <td>40 EUR</td>
-                    <td>20 min</td>
-                  </tr>
-                  <tr>
-                    <td>Barcelona Airport to Las Ramblas</td>
-                    <td>45 EUR</td>
-                    <td>50 EUR</td>
-                    <td>30 min</td>
-                  </tr>
-                  <tr>
-                    <td>Barcelona Airport to Sants Train Station</td>
-                    <td>35 EUR</td>
-                    <td>40 EUR</td>
-                    <td>20 min</td>
-                  </tr>
-                  <tr>
-                    <td>Barcelona Airport to Cruise Port</td>
-                    <td>45 EUR</td>
-                    <td>52 EUR</td>
-                    <td>30 min</td>
-                  </tr>
-                  <tr>
-                    <td>Barcelona Airport to Sitges</td>
-                    <td>55 EUR</td>
-                    <td>68 EUR</td>
-                    <td>30 min</td>
-                  </tr>
-                  <tr>
-                    <td>Barcelona Airport to Tarragona</td>
-                    <td>130 EUR</td>
-                    <td>180 EUR</td>
-                    <td>60 min</td>
-                  </tr>
-                  <tr>
-                    <td>Barcelona Airport to Lloret de Mar</td>
-                    <td>160 EUR</td>
-                    <td>182 EUR</td>
-                    <td>1h 15 min</td>
-                  </tr>
-                </tbody>
-              </table>
-              </div>
-
               <h4 className="section-title">Barcelona Airport taxi price</h4>
               <p>
                 Barcelona Airport taxi prices are calculated using a taximeter, so your final fare
@@ -274,89 +205,6 @@ function App() {
                 routes and vehicle types. That way you can skip hidden extras such as surcharges or
                 toll surprises after you land.
               </p>
-
-              <section className="fleet-section" aria-label="Taxi fleet and reviews">
-                <h4 className="fleet-title">Welcome Pickups taxi fleet</h4>
-
-                <div className="fleet-list">
-                  <article className="fleet-card">
-                    <div className="fleet-image image-sedan" />
-                    <div className="fleet-meta">
-                      <div>
-                        <p className="fleet-label">Car type</p>
-                        <p className="fleet-value">Sedan</p>
-                      </div>
-                      <div>
-                        <p className="fleet-label">Passengers</p>
-                        <p className="fleet-value">Up to 4</p>
-                      </div>
-                      <div>
-                        <p className="fleet-label">Price</p>
-                        <p className="fleet-value">From EUR 40</p>
-                      </div>
-                    </div>
-                  </article>
-
-                  <article className="fleet-card">
-                    <div className="fleet-image image-minivan" />
-                    <div className="fleet-meta">
-                      <div>
-                        <p className="fleet-label">Car type</p>
-                        <p className="fleet-value">Minivan</p>
-                      </div>
-                      <div>
-                        <p className="fleet-label">Passengers</p>
-                        <p className="fleet-value">Up to 8</p>
-                      </div>
-                      <div>
-                        <p className="fleet-label">Price</p>
-                        <p className="fleet-value">From EUR 65</p>
-                      </div>
-                    </div>
-                  </article>
-
-                  <article className="fleet-card">
-                    <div className="fleet-image image-minibus" />
-                    <div className="fleet-meta">
-                      <div>
-                        <p className="fleet-label">Car type</p>
-                        <p className="fleet-value">Minibus</p>
-                      </div>
-                      <div>
-                        <p className="fleet-label">Passengers</p>
-                        <p className="fleet-value">Up to 12</p>
-                      </div>
-                      <div>
-                        <p className="fleet-label">Price</p>
-                        <p className="fleet-value">From EUR 95</p>
-                      </div>
-                    </div>
-                  </article>
-                </div>
-
-                <p className="reviews-title">What our customers say about Welcome Pickups</p>
-                <div className="reviews-score-row">
-                  <div className="reviews-score-box">
-                    <p className="reviews-score">5.0</p>
-                    <p className="reviews-subtext">367 reviews</p>
-                  </div>
-                  <button type="button" className="review-btn">
-                    Write a review
-                  </button>
-                </div>
-
-                <article className="review-item">
-                  <div className="review-avatar">m</div>
-                  <div>
-                    <p className="review-name">mojad</p>
-                    <p className="review-stars">*****</p>
-                    <p className="review-text">
-                      Excellent service and clear communication. Driver was waiting at arrivals and
-                      the ride to the hotel was smooth and comfortable.
-                    </p>
-                  </div>
-                </article>
-              </section>
 
               <section className="guide-section" aria-labelledby="taxi-locations-heading">
                 <h4 id="taxi-locations-heading" className="guide-heading">

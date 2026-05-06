@@ -35,6 +35,13 @@ export type BookingDetailsValues = {
   boosterCount?: number;
 };
 
+const BASE_FARE = 44;
+const EXTRA_PASSENGER_FARE = 6;
+const LUGGAGE_FARE = 2;
+const INFANT_CARRIER_FARE = 5;
+const CHILD_SEAT_FARE = 5;
+const BOOSTER_FARE = 5;
+
 function getApiBaseUrl(): string {
   const raw = import.meta.env.VITE_API_BASE_URL;
   if (typeof raw !== "string" || !raw.trim()) {
@@ -59,15 +66,33 @@ function toIsoOrNow(datetimeLocalValue: string | undefined): string {
 export function estimatePriceFromPassengersAndLuggage(
   passengers: number,
   luggage: number,
+  infantCarrierCount = 0,
+  childSeatCount = 0,
+  boosterCount = 0,
 ): number {
-  const base = 44;
-  const passengerExtra = Math.max(0, passengers - 1) * 6;
-  const luggageExtra = luggage * 2;
-  return base + passengerExtra + luggageExtra;
+  const passengerExtra = Math.max(0, passengers - 1) * EXTRA_PASSENGER_FARE;
+  const luggageExtra = Math.max(0, luggage) * LUGGAGE_FARE;
+  const infantExtra = Math.max(0, infantCarrierCount) * INFANT_CARRIER_FARE;
+  const childExtra = Math.max(0, childSeatCount) * CHILD_SEAT_FARE;
+  const boosterExtra = Math.max(0, boosterCount) * BOOSTER_FARE;
+  return BASE_FARE + passengerExtra + luggageExtra + infantExtra + childExtra + boosterExtra;
 }
 
-export function estimatePrice(values: QuoteFormValues): number {
-  return estimatePriceFromPassengersAndLuggage(values.passengers, values.luggage);
+export function estimatePrice(
+  values: QuoteFormValues,
+  options?: {
+    infantCarrierCount?: number;
+    childSeatCount?: number;
+    boosterCount?: number;
+  },
+): number {
+  return estimatePriceFromPassengersAndLuggage(
+    values.passengers,
+    values.luggage,
+    options?.infantCarrierCount ?? 0,
+    options?.childSeatCount ?? 0,
+    options?.boosterCount ?? 0,
+  );
 }
 
 function coerceNonEmptyString(value: unknown): string | null {
@@ -131,7 +156,11 @@ export async function createBookingFromForms(
       pickupLocation: { label: quote.pickup },
       dropoffLocation: { label: quote.dropoff },
       scheduledTime: toIsoOrNow(quote.departureAt),
-      price: estimatePrice(quote),
+      price: estimatePrice(quote, {
+        infantCarrierCount: details.infantCarrierCount ?? 0,
+        childSeatCount: details.childSeatCount ?? 0,
+        boosterCount: details.boosterCount ?? 0,
+      }),
       status: "PENDING",
       luggageCount: quote.luggage,
       passengerCount: quote.passengers,

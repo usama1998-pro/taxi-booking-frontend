@@ -904,6 +904,121 @@
   opacity: 1;
 }
 
+.quote-datetime-heading {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #4b5a70;
+  margin-bottom: 4px;
+  letter-spacing: 0.02em;
+}
+
+.datetime-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 380px) {
+  .datetime-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.datetime-split-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.datetime-split-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b7f9b;
+}
+
+.datetime-split--booking .datetime-split-label {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3d4f66;
+}
+
+.datetime-split--time-only {
+  grid-template-columns: 1fr;
+}
+
+.quote-card .datetime-split-select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  box-sizing: border-box;
+  border: 1px solid #d5dee9;
+  border-radius: 12px;
+  padding: 11px 36px 11px 12px;
+  font-size: 15px;
+  line-height: 1.3;
+  color: #152032;
+  background-color: #fff;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9' fill='none'%3E%3Cpath d='M1 1.5L7 7l6-5.5' stroke='%234b5a70' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.quote-card .datetime-split-select:hover {
+  border-color: #b8c8db;
+}
+
+.quote-card .datetime-split-select:focus-visible {
+  border-color: #00c896;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 200, 150, 0.22);
+}
+
+.booking-field .datetime-split-select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  box-sizing: border-box;
+  border-radius: 11px;
+  border: 1px solid #cfd9e6;
+  padding: 11px 36px 11px 12px;
+  font-size: 15px;
+  line-height: 1.3;
+  color: #152032;
+  background-color: #fff;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9' fill='none'%3E%3Cpath d='M1 1.5L7 7l6-5.5' stroke='%236b7f9b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.booking-field .datetime-split-select:hover {
+  border-color: #b8c8db;
+}
+
+.booking-field .datetime-split-select:focus-visible {
+  outline: none;
+  border-color: #14d9b3;
+  box-shadow: 0 0 0 3px rgba(20, 217, 179, 0.22);
+}
+
 .counter-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -1723,6 +1838,10 @@
   outline: none;
   border-color: #14d9b3;
   box-shadow: 0 0 0 3px rgba(20, 217, 179, 0.22);
+}
+
+.booking-field .booking-datetime-local {
+  min-height: 48px;
 }
 
 .booking-input-enhanced.booking-phone-code-input,

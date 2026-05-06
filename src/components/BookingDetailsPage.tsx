@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 
+import { DateTimeLocalSplit } from '@/components/DateTimeLocalSplit'
 import type { QuoteFormValues } from '@/components/QuoteForm'
 import { CurrencyMenu } from '@/components/CurrencyMenu'
 import { Button } from '@/components/ui/button'
@@ -256,6 +257,7 @@ export function BookingDetailsPage({
   onBookingSuccess,
 }: BookingDetailsPageProps) {
   const { currency } = useDisplayCurrency()
+  const [pickupDateTime, setPickupDateTime] = useState(() => quote.departureAt?.trim() ?? '')
   const [flightNumber, setFlightNumber] = useState('')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -276,8 +278,20 @@ export function BookingDetailsPage({
   const [error, setError] = useState<string | null>(null)
   const phoneCodePickerRef = useRef<HTMLDivElement | null>(null)
 
-  const estimatedPrice = useMemo(() => estimatePrice(quote), [quote])
-  const routeDate = useMemo(() => formatRouteDate(quote.departureAt), [quote.departureAt])
+  const quoteForSubmit = useMemo(
+    () => ({ ...quote, departureAt: pickupDateTime }),
+    [quote, pickupDateTime],
+  )
+  const estimatedPrice = useMemo(
+    () =>
+      estimatePrice(quoteForSubmit, {
+        infantCarrierCount: addChildSeats ? infantCarrierCount : 0,
+        childSeatCount: addChildSeats ? childSeatCount : 0,
+        boosterCount: addChildSeats ? boosterCount : 0,
+      }),
+    [addChildSeats, boosterCount, childSeatCount, infantCarrierCount, quoteForSubmit],
+  )
+  const routeDate = useMemo(() => formatRouteDate(pickupDateTime || undefined), [pickupDateTime])
   const tripChildSeatsChip = useMemo(
     () => formatChildSeatsSummaryLine(infantCarrierCount, childSeatCount, boosterCount),
     [infantCarrierCount, childSeatCount, boosterCount],
@@ -328,6 +342,10 @@ export function BookingDetailsPage({
       return byCountry || byDial || byIso
     })
   }, [phoneCodeQuery])
+
+  useEffect(() => {
+    setPickupDateTime(quote.departureAt?.trim() ?? '')
+  }, [quote.departureAt])
 
   useEffect(() => {
     function onPointerDown(event: MouseEvent) {
@@ -382,10 +400,7 @@ export function BookingDetailsPage({
       <header className="booking-page-nav">
         <div className="booking-page-nav-inner">
           <div className="booking-page-brand">
-            <span className="booking-page-brand-badge" aria-hidden="true">
-              WP
-            </span>
-            <span className="booking-page-brand-name">Taxi Barcelona</span>
+            <span className="booking-page-brand-name">BarcelonTaxi24</span>
           </div>
           <nav className="booking-page-nav-actions" aria-label="Site utilities">
             <a href="/">EN</a>
@@ -424,6 +439,17 @@ export function BookingDetailsPage({
               <h2 id="booking-section-trip" className="booking-form-section-title">
                 Flight &amp; seating
               </h2>
+              <div className="booking-field booking-field-full">
+                <span>Pickup time</span>
+                <DateTimeLocalSplit
+                  value={pickupDateTime}
+                  onChange={setPickupDateTime}
+                  inputClassName="booking-input-enhanced booking-datetime-local"
+                  variant="booking"
+                  hideDate
+                  timeLabel="Time"
+                />
+              </div>
               <label className="booking-field booking-field-full">
                 <span>Flight number (optional)</span>
                 <Input
