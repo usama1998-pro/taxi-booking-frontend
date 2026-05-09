@@ -1,0 +1,11 @@
+# SPA fallback (Vite/React): serve index.html for client routes like /admin
+# Copied to dist/ on `npm run build`. Requires Apache mod_rewrite (default on Hostinger shared).
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  # If the site lives in a subfolder, change to e.g. RewriteBase /subfolder/
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
