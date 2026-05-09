@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { BookingDetailsPage } from '@/components/BookingDetailsPage'
 import { BookingSuccessPage } from '@/components/BookingSuccessPage'
 import { CurrencyMenu } from '@/components/CurrencyMenu'
+import { AdminPortal } from '@/components/AdminPortal'
 import type { BookingSuccessPayload } from '@/lib/bookingsApi'
 import { QuoteForm, type QuoteFormValues } from '@/components/QuoteForm'
 import './App.css'
@@ -16,10 +17,21 @@ const HERO_BG_IMAGES = [
 const HERO_BG_INTERVAL_MS = 5500
 
 function App() {
+  const [pathname, setPathname] = useState(() => window.location.pathname)
   const [heroBgIndex, setHeroBgIndex] = useState(0)
   const [draftQuote, setDraftQuote] = useState<QuoteFormValues | null>(null)
   const [showBookingDetails, setShowBookingDetails] = useState(false)
   const [bookingSuccess, setBookingSuccess] = useState<BookingSuccessPayload | null>(null)
+
+  useEffect(() => {
+    const handlePathChange = () => setPathname(window.location.pathname)
+    window.addEventListener('popstate', handlePathChange)
+    return () => window.removeEventListener('popstate', handlePathChange)
+  }, [])
+
+  if (pathname.startsWith('/admin')) {
+    return <AdminPortal />
+  }
 
   useEffect(() => {
     const id = window.setInterval(() => {
