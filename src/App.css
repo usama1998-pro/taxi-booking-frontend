@@ -2182,6 +2182,51 @@
   font-weight: 600;
 }
 
+.booking-payment-methods {
+  display: grid;
+  gap: 18px;
+}
+
+.booking-payment-method {
+  padding: 18px;
+  border: 1px solid #e4eaf2;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbfd 100%);
+  box-shadow: 0 10px 24px rgba(21, 32, 50, 0.04);
+}
+
+.booking-payment-method-title {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #152032;
+}
+
+.booking-payment-paypal-wrap {
+  min-height: 48px;
+}
+
+.booking-payment-stripe-form {
+  display: grid;
+  gap: 14px;
+}
+
+.booking-payment-stripe-submit {
+  width: 100%;
+}
+
+.booking-payment-loading,
+.booking-payment-unavailable {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #5b677a;
+}
+
+.booking-payment-unavailable code {
+  font-size: 12px;
+}
+
 .booking-success {
   margin: 0;
   padding: 8px 9px;

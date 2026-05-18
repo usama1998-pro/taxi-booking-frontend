@@ -12,6 +12,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { isPickupDatetimeInPast, PICKUP_IN_PAST_MESSAGE } from '@/lib/bookingDateTime'
 import { cn } from '@/lib/utils'
 
 const quoteFormSchema = z
@@ -25,10 +26,24 @@ const quoteFormSchema = z
     luggage: z.number().int().min(0).max(16),
   })
   .superRefine((data, ctx) => {
+    if (data.departureAt?.trim() && isPickupDatetimeInPast(data.departureAt)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: PICKUP_IN_PAST_MESSAGE,
+        path: ['departureAt'],
+      })
+    }
     if (data.tripType === 'return' && !data.returnAt?.trim()) {
       ctx.addIssue({
         code: 'custom',
         message: 'Add return date & time',
+        path: ['returnAt'],
+      })
+    }
+    if (data.tripType === 'return' && data.returnAt?.trim() && isPickupDatetimeInPast(data.returnAt)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: PICKUP_IN_PAST_MESSAGE,
         path: ['returnAt'],
       })
     }

@@ -1,4 +1,5 @@
 import type { QuoteFormValues } from "@/components/QuoteForm";
+import { isPickupDatetimeInPast, PICKUP_IN_PAST_MESSAGE } from "@/lib/bookingDateTime";
 
 /** Driver contact returned when a booking is created with an assigned driver (from DB). */
 export type AssignedDriverSummary = {
@@ -35,6 +36,12 @@ export type BookingDetailsValues = {
   boosterCount?: number;
 };
 
+export type PendingBookingPayload = {
+  quote: QuoteFormValues;
+  details: BookingDetailsValues;
+  estimatedPriceEur: number;
+};
+
 const BASE_FARE = 44;
 const EXTRA_PASSENGER_FARE = 6;
 const LUGGAGE_FARE = 2;
@@ -53,12 +60,15 @@ function getApiBaseUrl(): string {
 }
 
 function toIsoOrNow(datetimeLocalValue: string | undefined): string {
-  if (!datetimeLocalValue) {
+  if (!datetimeLocalValue?.trim()) {
     return new Date().toISOString();
+  }
+  if (isPickupDatetimeInPast(datetimeLocalValue)) {
+    throw new Error(PICKUP_IN_PAST_MESSAGE);
   }
   const parsed = new Date(datetimeLocalValue);
   if (Number.isNaN(parsed.getTime())) {
-    return new Date().toISOString();
+    throw new Error("Invalid pickup date and time.");
   }
   return parsed.toISOString();
 }

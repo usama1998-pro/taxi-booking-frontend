@@ -8,22 +8,22 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useDisplayCurrency } from '@/context/DisplayCurrencyContext'
 import {
-  createBookingFromForms,
   estimatePrice,
   formatChildSeatsSummaryLine,
-  type BookingSuccessPayload,
+  type PendingBookingPayload,
 } from '@/lib/bookingsApi'
 import {
   BOOKING_BASE_CURRENCY,
   formatEurBase,
   formatEurInDisplayCurrency,
 } from '@/lib/displayCurrency'
+import { isPickupDatetimeInPast, PICKUP_IN_PAST_MESSAGE } from '@/lib/bookingDateTime'
 import { cn } from '@/lib/utils'
 
 type BookingDetailsPageProps = {
   quote: QuoteFormValues
   onBack: () => void
-  onBookingSuccess: (payload: BookingSuccessPayload) => void
+  onContinueToPayment: (payload: PendingBookingPayload) => void
 }
 
 const PHONE_CODES = [
@@ -254,7 +254,7 @@ function formatRouteDate(datetimeLocalValue: string | undefined): string {
 export function BookingDetailsPage({
   quote,
   onBack,
-  onBookingSuccess,
+  onContinueToPayment,
 }: BookingDetailsPageProps) {
   const { currency } = useDisplayCurrency()
   const [pickupDateTime, setPickupDateTime] = useState(() => quote.departureAt?.trim() ?? '')
@@ -274,7 +274,7 @@ export function BookingDetailsPage({
   const [bulkyLuggage, setBulkyLuggage] = useState(false)
   const [wheelchairAccessible, setWheelchairAccessible] = useState(false)
   const [driverNoteManuscript, setDriverNoteManuscript] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isContinuing, setIsContinuing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const phoneCodePickerRef = useRef<HTMLDivElement | null>(null)
 
@@ -360,7 +360,7 @@ export function BookingDetailsPage({
     return () => document.removeEventListener('mousedown', onPointerDown)
   }, [phoneCode])
 
-  async function submitFinalBooking(e: FormEvent<HTMLFormElement>) {
+  function continueToPayment(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
 
@@ -369,29 +369,29 @@ export function BookingDetailsPage({
       return
     }
 
-    setIsSubmitting(true)
+    if (pickupDateTime.trim() && isPickupDatetimeInPast(pickupDateTime)) {
+      setError(PICKUP_IN_PAST_MESSAGE)
+      return
+    }
+
+    setIsContinuing(true)
     try {
-      const result = await createBookingFromForms(quote, {
-        flightNumber,
-        fullName: fullName.trim(),
-        email: email.trim(),
-        phone: `${phoneCode.dialCode} ${phone.trim()}`.trim(),
-        note: addDriverNotes ? driverNoteCombined.trim() : '',
-        infantCarrierCount: addChildSeats ? infantCarrierCount : 0,
-        childSeatCount: addChildSeats ? childSeatCount : 0,
-        boosterCount: addChildSeats ? boosterCount : 0,
+      onContinueToPayment({
+        quote: quoteForSubmit,
+        estimatedPriceEur: estimatedPrice,
+        details: {
+          flightNumber,
+          fullName: fullName.trim(),
+          email: email.trim(),
+          phone: `${phoneCode.dialCode} ${phone.trim()}`.trim(),
+          note: addDriverNotes ? driverNoteCombined.trim() : '',
+          infantCarrierCount: addChildSeats ? infantCarrierCount : 0,
+          childSeatCount: addChildSeats ? childSeatCount : 0,
+          boosterCount: addChildSeats ? boosterCount : 0,
+        },
       })
-      onBookingSuccess({
-        uuid: result.uuid,
-        assignmentMessage: result.assignmentMessage,
-        driver: result.driver,
-        childSeatsSummary: result.childSeatsSummary,
-      })
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to submit booking.'
-      setError(message)
     } finally {
-      setIsSubmitting(false)
+      setIsContinuing(false)
     }
   }
 
@@ -431,7 +431,7 @@ export function BookingDetailsPage({
             <span className="booking-chip booking-chip--accent">{routeDate}</span>
           </div>
 
-          <form onSubmit={submitFinalBooking} className="booking-form">
+          <form onSubmit={continueToPayment} className="booking-form">
             <section
               className="booking-form-section"
               aria-labelledby="booking-section-trip"
@@ -658,9 +658,9 @@ export function BookingDetailsPage({
             <Button
               type="submit"
               className="booking-submit booking-field-full"
-              disabled={isSubmitting}
+              disabled={isContinuing}
             >
-              {isSubmitting ? 'Submitting...' : 'Continue'}
+              {isContinuing ? 'Continuing…' : 'Continue to payment'}
             </Button>
           </form>
         </div>

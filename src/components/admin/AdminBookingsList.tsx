@@ -303,7 +303,7 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
     active === 'past'
       ? 'No past trips yet.'
       : active === 'current'
-        ? 'Nothing scheduled for today.'
+        ? 'No open trips due today or earlier.'
         : 'No reservations from tomorrow onward.'
 
   const onDeleteBooking = useCallback(

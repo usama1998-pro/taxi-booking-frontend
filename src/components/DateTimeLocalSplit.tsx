@@ -1,4 +1,7 @@
+import { useEffect } from 'react'
+
 import { Input } from '@/components/ui/input'
+import { isPickupDatetimeInPast } from '@/lib/bookingDateTime'
 import { cn } from '@/lib/utils'
 
 /** Every 15 minutes, 00:00–23:45 */
@@ -68,6 +71,33 @@ export function todayYmdLocal(): string {
   return `${y}-${m}-${day}`
 }
 
+function timeToMinutes(t: string): number {
+  const [hh, mm] = t.split(':').map(Number)
+  return hh * 60 + mm
+}
+
+/** Next 15-minute slot at or after now (local). */
+export function earliestSelectableTimeToday(): string {
+  const n = new Date()
+  const total = n.getHours() * 60 + n.getMinutes()
+  const next = Math.ceil(total / 15) * 15
+  if (next >= 24 * 60) {
+    return '23:45'
+  }
+  const h = Math.floor(next / 60)
+  const m = next % 60
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
+
+function filterFutureTimeOptions(date: string, options: string[]): string[] {
+  if (date !== todayYmdLocal()) {
+    return options
+  }
+  const min = earliestSelectableTimeToday()
+  const minMins = timeToMinutes(min)
+  return options.filter((t) => timeToMinutes(t) >= minMins)
+}
+
 type DateTimeLocalSplitProps = {
   value: string
   onChange: (next: string) => void
@@ -78,6 +108,8 @@ type DateTimeLocalSplitProps = {
   timeLabel?: string
   /** When true, only the time dropdown is shown; date is kept from `value` (or today if missing). */
   hideDate?: boolean
+  /** Block calendar dates before today and past time slots on today. */
+  disallowPast?: boolean
 }
 
 /**
@@ -91,9 +123,41 @@ export function DateTimeLocalSplit({
   dateLabel = 'Pickup date',
   timeLabel = 'Pickup time',
   hideDate = false,
+  disallowPast = true,
 }: DateTimeLocalSplitProps) {
   const { date, time } = splitDateTimeLocal(value)
-  const timeSelectOptions = timeOptionsForSelect(time)
+  const minDate = disallowPast ? todayYmdLocal() : undefined
+  let timeSelectOptions = timeOptionsForSelect(time)
+  if (disallowPast && date) {
+    timeSelectOptions = filterFutureTimeOptions(date, timeSelectOptions)
+  }
+
+  useEffect(() => {
+    if (!disallowPast) {
+      return
+    }
+    const today = todayYmdLocal()
+    const effectiveDate = date || (hideDate ? today : '')
+    if (!effectiveDate) {
+      return
+    }
+
+    let nextValue: string | null = null
+    if (effectiveDate < today) {
+      const allowed = filterFutureTimeOptions(today, PICKUP_TIME_OPTIONS)
+      nextValue = joinDateTimeLocal(today, allowed[0] ?? earliestSelectableTimeToday())
+    } else if (value.trim() && isPickupDatetimeInPast(value)) {
+      const allowed = filterFutureTimeOptions(effectiveDate, PICKUP_TIME_OPTIONS)
+      nextValue = joinDateTimeLocal(
+        effectiveDate,
+        allowed[0] ?? earliestSelectableTimeToday(),
+      )
+    }
+
+    if (nextValue && nextValue !== value) {
+      onChange(nextValue)
+    }
+  }, [date, disallowPast, hideDate, onChange, time, value])
 
   return (
     <div
@@ -112,13 +176,20 @@ export function DateTimeLocalSplit({
           <Input
             type="date"
             value={date}
+            min={minDate}
             onChange={(e) => {
               const nextDate = e.target.value
               if (!nextDate) {
                 onChange('')
                 return
               }
-              const t = time || '09:00'
+              let t = time || earliestSelectableTimeToday()
+              if (disallowPast && nextDate === todayYmdLocal()) {
+                const allowed = filterFutureTimeOptions(nextDate, PICKUP_TIME_OPTIONS)
+                if (allowed.length > 0 && !allowed.includes(t)) {
+                  t = allowed[0]!
+                }
+              }
               onChange(joinDateTimeLocal(nextDate, t))
             }}
             className={inputClassName}
@@ -142,7 +213,10 @@ export function DateTimeLocalSplit({
               }
               return
             }
-            const d = date || todayYmdLocal()
+            let d = date || todayYmdLocal()
+            if (disallowPast && d < todayYmdLocal()) {
+              d = todayYmdLocal()
+            }
             onChange(joinDateTimeLocal(d, nextTime))
           }}
           aria-label={timeLabel}

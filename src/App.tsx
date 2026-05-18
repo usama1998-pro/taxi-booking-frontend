@@ -1,10 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { BookingDetailsPage } from '@/components/BookingDetailsPage'
+import { BookingPaymentPage } from '@/components/BookingPaymentPage'
 import { BookingSuccessPage } from '@/components/BookingSuccessPage'
 import { CurrencyMenu } from '@/components/CurrencyMenu'
 import { AdminPortal } from '@/components/AdminPortal'
-import type { BookingSuccessPayload } from '@/lib/bookingsApi'
+import {
+  createBookingFromForms,
+  type BookingSuccessPayload,
+  type PendingBookingPayload,
+} from '@/lib/bookingsApi'
+import {
+  bookingPaymentPath,
+  bookingSuccessPath,
+  clearBookingSuccess,
+  clearPendingBooking,
+  loadBookingSuccess,
+  loadPendingBooking,
+  saveBookingSuccess,
+  savePendingBooking,
+} from '@/lib/bookingCheckoutStorage'
+import { navigateTo, replaceLocation } from '@/lib/bookingNavigation'
+import { capturePayPalOrder } from '@/lib/paymentsApi'
 import { QuoteForm, type QuoteFormValues } from '@/components/QuoteForm'
 import './App.css'
 
@@ -21,17 +38,128 @@ function App() {
   const [heroBgIndex, setHeroBgIndex] = useState(0)
   const [draftQuote, setDraftQuote] = useState<QuoteFormValues | null>(null)
   const [showBookingDetails, setShowBookingDetails] = useState(false)
-  const [bookingSuccess, setBookingSuccess] = useState<BookingSuccessPayload | null>(null)
+  const [pendingBooking, setPendingBooking] = useState<PendingBookingPayload | null>(() =>
+    loadPendingBooking(),
+  )
+  const [bookingSuccess, setBookingSuccess] = useState<BookingSuccessPayload | null>(() =>
+    loadBookingSuccess(),
+  )
+  const [paypalReturnMessage, setPaypalReturnMessage] = useState<string | null>(null)
+  const [isPaypalReturnProcessing, setIsPaypalReturnProcessing] = useState(false)
 
-  useEffect(() => {
-    const handlePathChange = () => setPathname(window.location.pathname)
-    window.addEventListener('popstate', handlePathChange)
-    return () => window.removeEventListener('popstate', handlePathChange)
+  const handlePathChange = useCallback((path: string) => {
+    setPathname(path)
   }, [])
 
-  if (pathname.startsWith('/admin')) {
-    return <AdminPortal />
-  }
+  const completeBookingSuccess = useCallback(
+    (payload: BookingSuccessPayload) => {
+      clearPendingBooking()
+      saveBookingSuccess(payload)
+      setPendingBooking(null)
+      setBookingSuccess(payload)
+      setPaypalReturnMessage(null)
+      replaceLocation(bookingSuccessPath(payload.uuid), handlePathChange)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    },
+    [handlePathChange],
+  )
+
+  const resetBookingFlow = useCallback(() => {
+    clearPendingBooking()
+    clearBookingSuccess()
+    setBookingSuccess(null)
+    setPendingBooking(null)
+    setDraftQuote(null)
+    setShowBookingDetails(false)
+    setPaypalReturnMessage(null)
+    replaceLocation('/', handlePathChange)
+  }, [handlePathChange])
+
+  useEffect(() => {
+    const onPopState = () => setPathname(window.location.pathname)
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
+  useEffect(() => {
+    if (pathname.startsWith('/booking/success') && !bookingSuccess) {
+      const stored = loadBookingSuccess()
+      if (stored) {
+        setBookingSuccess(stored)
+      }
+    }
+  }, [pathname, bookingSuccess])
+
+  useEffect(() => {
+    if (pathname === bookingPaymentPath() && !pendingBooking) {
+      const stored = loadPendingBooking()
+      if (stored) {
+        setPendingBooking(stored)
+      }
+    }
+  }, [pathname, pendingBooking])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const paypalFlow = params.get('paypal')
+    if (paypalFlow === 'cancel') {
+      setPaypalReturnMessage('PayPal checkout was cancelled. You can try again or choose card payment.')
+      replaceLocation(bookingPaymentPath(), handlePathChange)
+      return
+    }
+    if (paypalFlow !== 'return') {
+      return
+    }
+
+    const orderId = params.get('token')
+    if (!orderId) {
+      setPaypalReturnMessage('PayPal did not return a payment reference. Please try again.')
+      replaceLocation(bookingPaymentPath(), handlePathChange)
+      return
+    }
+
+    const pending = loadPendingBooking()
+    if (!pending) {
+      setPaypalReturnMessage(
+        'Your checkout session expired after PayPal login. Please enter your trip details again.',
+      )
+      replaceLocation('/', handlePathChange)
+      return
+    }
+
+    let cancelled = false
+    setPendingBooking(pending)
+    setIsPaypalReturnProcessing(true)
+    setPaypalReturnMessage(null)
+
+    void (async () => {
+      try {
+        await capturePayPalOrder(orderId)
+        const result = await createBookingFromForms(pending.quote, pending.details)
+        if (cancelled) return
+        completeBookingSuccess({
+          uuid: result.uuid,
+          assignmentMessage: result.assignmentMessage,
+          driver: result.driver,
+          childSeatsSummary: result.childSeatsSummary,
+        })
+      } catch (err) {
+        if (cancelled) return
+        const message =
+          err instanceof Error ? err.message : 'Could not confirm your booking after PayPal payment.'
+        setPaypalReturnMessage(message)
+        replaceLocation(bookingPaymentPath(), handlePathChange)
+      } finally {
+        if (!cancelled) {
+          setIsPaypalReturnProcessing(false)
+        }
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [completeBookingSuccess, handlePathChange])
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -40,15 +168,68 @@ function App() {
     return () => window.clearInterval(id)
   }, [])
 
-  if (bookingSuccess) {
+  if (pathname.startsWith('/admin')) {
+    return <AdminPortal />
+  }
+
+  if (isPaypalReturnProcessing) {
     return (
-      <BookingSuccessPage
-        data={bookingSuccess}
-        onBookAnother={() => {
-          setBookingSuccess(null)
-          setDraftQuote(null)
-          setShowBookingDetails(false)
+      <main className="booking-page">
+        <section className="booking-container">
+          <p className="booking-payment-loading booking-field-full">
+            Payment received — confirming your booking…
+          </p>
+        </section>
+      </main>
+    )
+  }
+
+  if (bookingSuccess || pathname.startsWith('/booking/success')) {
+    const successData = bookingSuccess ?? loadBookingSuccess()
+    if (!successData) {
+      return (
+        <main className="booking-page">
+          <section className="booking-container">
+            <p className="booking-payment-unavailable">
+              Booking reference not found. Please check your confirmation email or book again.
+            </p>
+            <button type="button" className="booking-submit" onClick={resetBookingFlow}>
+              Back to home
+            </button>
+          </section>
+        </main>
+      )
+    }
+    return <BookingSuccessPage data={successData} onBookAnother={resetBookingFlow} />
+  }
+
+  if (pendingBooking || pathname === bookingPaymentPath()) {
+    const activePending = pendingBooking ?? loadPendingBooking()
+    if (!activePending) {
+      return (
+        <main className="booking-page">
+          <section className="booking-container">
+            <p className="booking-payment-unavailable">
+              Checkout session not found. Continue from the booking form.
+            </p>
+            <button type="button" className="booking-submit" onClick={resetBookingFlow}>
+              Back to home
+            </button>
+          </section>
+        </main>
+      )
+    }
+    return (
+      <BookingPaymentPage
+        pending={activePending}
+        paypalReturnMessage={paypalReturnMessage}
+        onBack={() => {
+          clearPendingBooking()
+          setPendingBooking(null)
+          setPaypalReturnMessage(null)
+          replaceLocation('/', handlePathChange)
         }}
+        onBookingSuccess={completeBookingSuccess}
       />
     )
   }
@@ -58,7 +239,11 @@ function App() {
       <BookingDetailsPage
         quote={draftQuote}
         onBack={() => setShowBookingDetails(false)}
-        onBookingSuccess={(payload) => setBookingSuccess(payload)}
+        onContinueToPayment={(payload) => {
+          savePendingBooking(payload)
+          setPendingBooking(payload)
+          navigateTo(bookingPaymentPath(), handlePathChange)
+        }}
       />
     )
   }
