@@ -23,6 +23,7 @@ import {
 } from '@/lib/displayCurrency'
 import { isPickupDatetimeInPast, PICKUP_IN_PAST_MESSAGE } from '@/lib/bookingDateTime'
 import { bookingPaymentPath, savePendingBooking } from '@/lib/bookingCheckoutStorage'
+import { isPayPalConfigured } from '@/lib/paypalConfig'
 import {
   capturePayPalOrder,
   createPayPalOrder,
@@ -138,17 +139,41 @@ function PayPalCheckout({
   onPaid: () => Promise<void>
   onError: (message: string) => void
 }) {
-  const [{ isPending, isRejected }] = usePayPalScriptReducer()
-  const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID?.trim()
-  const checkoutUrls = useMemo(() => paypalCheckoutUrls(), [])
-
-  if (!paypalClientId) {
+  if (!isPayPalConfigured()) {
     return (
       <p className="booking-payment-unavailable">
         PayPal is not configured. Add <code>VITE_PAYPAL_CLIENT_ID</code> to your frontend environment.
       </p>
     )
   }
+
+  return (
+    <PayPalCheckoutWithScript
+      amountEur={amountEur}
+      description={description}
+      disabled={disabled}
+      onPaid={onPaid}
+      onError={onError}
+    />
+  )
+}
+
+/** Must render only when PayPalScriptProvider is mounted (see PaymentProviders). */
+function PayPalCheckoutWithScript({
+  amountEur,
+  description,
+  disabled,
+  onPaid,
+  onError,
+}: {
+  amountEur: number
+  description: string
+  disabled: boolean
+  onPaid: () => Promise<void>
+  onError: (message: string) => void
+}) {
+  const [{ isPending, isRejected }] = usePayPalScriptReducer()
+  const checkoutUrls = useMemo(() => paypalCheckoutUrls(), [])
 
   if (isRejected) {
     return (

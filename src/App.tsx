@@ -11,13 +11,17 @@ import {
   type PendingBookingPayload,
 } from '@/lib/bookingsApi'
 import {
+  bookingDetailsPath,
   bookingPaymentPath,
   bookingSuccessPath,
-  clearBookingSuccess,
+  clearBookingCheckoutSession,
+  clearDraftQuote,
   clearPendingBooking,
   loadBookingSuccess,
+  loadDraftQuote,
   loadPendingBooking,
   saveBookingSuccess,
+  saveDraftQuote,
   savePendingBooking,
 } from '@/lib/bookingCheckoutStorage'
 import { navigateTo, replaceLocation } from '@/lib/bookingNavigation'
@@ -36,8 +40,7 @@ const HERO_BG_INTERVAL_MS = 5500
 function App() {
   const [pathname, setPathname] = useState(() => window.location.pathname)
   const [heroBgIndex, setHeroBgIndex] = useState(0)
-  const [draftQuote, setDraftQuote] = useState<QuoteFormValues | null>(null)
-  const [showBookingDetails, setShowBookingDetails] = useState(false)
+  const [draftQuote, setDraftQuote] = useState<QuoteFormValues | null>(() => loadDraftQuote())
   const [pendingBooking, setPendingBooking] = useState<PendingBookingPayload | null>(() =>
     loadPendingBooking(),
   )
@@ -65,12 +68,10 @@ function App() {
   )
 
   const resetBookingFlow = useCallback(() => {
-    clearPendingBooking()
-    clearBookingSuccess()
+    clearBookingCheckoutSession()
     setBookingSuccess(null)
     setPendingBooking(null)
     setDraftQuote(null)
-    setShowBookingDetails(false)
     setPaypalReturnMessage(null)
     replaceLocation('/', handlePathChange)
   }, [handlePathChange])
@@ -224,21 +225,38 @@ function App() {
         pending={activePending}
         paypalReturnMessage={paypalReturnMessage}
         onBack={() => {
-          clearPendingBooking()
-          setPendingBooking(null)
           setPaypalReturnMessage(null)
-          replaceLocation('/', handlePathChange)
+          replaceLocation(bookingDetailsPath(), handlePathChange)
         }}
         onBookingSuccess={completeBookingSuccess}
       />
     )
   }
 
-  if (showBookingDetails && draftQuote) {
+  if (pathname === bookingDetailsPath()) {
+    const activeQuote = draftQuote ?? loadDraftQuote()
+    if (!activeQuote) {
+      return (
+        <main className="booking-page">
+          <section className="booking-container">
+            <p className="booking-payment-unavailable">
+              Trip details not found. Start from the booking form on the home page.
+            </p>
+            <button type="button" className="booking-submit" onClick={resetBookingFlow}>
+              Back to home
+            </button>
+          </section>
+        </main>
+      )
+    }
     return (
       <BookingDetailsPage
-        quote={draftQuote}
-        onBack={() => setShowBookingDetails(false)}
+        quote={activeQuote}
+        onBack={() => {
+          clearDraftQuote()
+          setDraftQuote(null)
+          replaceLocation('/', handlePathChange)
+        }}
         onContinueToPayment={(payload) => {
           savePendingBooking(payload)
           setPendingBooking(payload)
@@ -579,7 +597,8 @@ function App() {
           initialValues={draftQuote}
           onContinue={(values) => {
             setDraftQuote(values)
-            setShowBookingDetails(true)
+            saveDraftQuote(values)
+            navigateTo(bookingDetailsPath(), handlePathChange)
           }}
         />
       </section>

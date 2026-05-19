@@ -2,20 +2,18 @@ import { PayPalScriptProvider } from '@paypal/react-paypal-js'
 import type { ReactNode } from 'react'
 
 import { BOOKING_BASE_CURRENCY } from '@/lib/displayCurrency'
+import { getPayPalClientId, getPayPalLocale, isPayPalConfigured } from '@/lib/paypalConfig'
 
 type PaymentProvidersProps = {
   children: ReactNode
 }
 
 export function PaymentProviders({ children }: PaymentProvidersProps) {
-  const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID?.trim()
+  const clientId = getPayPalClientId()
 
-  if (!clientId) {
-    return children
+  if (!isPayPalConfigured() || !clientId) {
+    return <>{children}</>
   }
-
-  // en_US uses a period decimal separator (46.00). Browser locale (e.g. es_ES) shows 46,00.
-  const locale = import.meta.env.VITE_PAYPAL_LOCALE?.trim() || 'en_US'
 
   return (
     <PayPalScriptProvider
@@ -23,7 +21,7 @@ export function PaymentProviders({ children }: PaymentProvidersProps) {
         clientId,
         currency: BOOKING_BASE_CURRENCY,
         intent: 'capture',
-        locale,
+        locale: getPayPalLocale(),
       }}
     >
       {children}

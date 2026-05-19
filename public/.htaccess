@@ -1,4 +1,5 @@
-# SPA fallback (Vite/React): serve index.html for client routes like /admin
+# SPA fallback (Vite/React): serve index.html for client routes
+# e.g. /admin, /booking/details, /booking/payment, /booking/success
 # Copied to dist/ on `npm run build`. Requires Apache mod_rewrite (default on Hostinger shared).
 <IfModule mod_rewrite.c>
   RewriteEngine On
