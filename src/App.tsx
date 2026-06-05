@@ -210,6 +210,44 @@ function App() {
     return <BookingSuccessPage data={successData} onBookAnother={resetBookingFlow} />
   }
 
+  if (pathname === bookingDetailsPath()) {
+    const storedPending = loadPendingBooking()
+    const activeQuote =
+      draftQuote ?? loadDraftQuote() ?? pendingBooking?.quote ?? storedPending?.quote
+    const initialDetails = pendingBooking?.details ?? storedPending?.details
+    if (!activeQuote) {
+      return (
+        <main className="booking-page">
+          <section className="booking-container">
+            <p className="booking-payment-unavailable">
+              Trip details not found. Start from the booking form on the home page.
+            </p>
+            <button type="button" className="booking-submit" onClick={resetBookingFlow}>
+              Back to home
+            </button>
+          </section>
+        </main>
+      )
+    }
+    return (
+      <BookingDetailsPage
+        quote={activeQuote}
+        initialDetails={initialDetails}
+        onBack={() => {
+          clearDraftQuote()
+          setDraftQuote(null)
+          setPendingBooking(null)
+          replaceLocation('/', handlePathChange)
+        }}
+        onContinueToPayment={(payload) => {
+          savePendingBooking(payload)
+          setPendingBooking(payload)
+          navigateTo(bookingPaymentPath(), handlePathChange)
+        }}
+      />
+    )
+  }
+
   if (pendingBooking || pathname === bookingPaymentPath()) {
     const activePending = pendingBooking ?? loadPendingBooking()
     if (!activePending) {
@@ -232,42 +270,13 @@ function App() {
         paypalReturnMessage={paypalReturnMessage}
         onBack={() => {
           setPaypalReturnMessage(null)
-          replaceLocation(bookingDetailsPath(), handlePathChange)
+          setDraftQuote(activePending.quote)
+          saveDraftQuote(activePending.quote)
+          setPendingBooking(null)
+          navigateTo(bookingDetailsPath(), handlePathChange)
+          window.scrollTo({ top: 0, behavior: 'smooth' })
         }}
         onBookingSuccess={completeBookingSuccess}
-      />
-    )
-  }
-
-  if (pathname === bookingDetailsPath()) {
-    const activeQuote = draftQuote ?? loadDraftQuote()
-    if (!activeQuote) {
-      return (
-        <main className="booking-page">
-          <section className="booking-container">
-            <p className="booking-payment-unavailable">
-              Trip details not found. Start from the booking form on the home page.
-            </p>
-            <button type="button" className="booking-submit" onClick={resetBookingFlow}>
-              Back to home
-            </button>
-          </section>
-        </main>
-      )
-    }
-    return (
-      <BookingDetailsPage
-        quote={activeQuote}
-        onBack={() => {
-          clearDraftQuote()
-          setDraftQuote(null)
-          replaceLocation('/', handlePathChange)
-        }}
-        onContinueToPayment={(payload) => {
-          savePendingBooking(payload)
-          setPendingBooking(payload)
-          navigateTo(bookingPaymentPath(), handlePathChange)
-        }}
       />
     )
   }

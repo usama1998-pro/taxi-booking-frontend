@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 
 import { DateTimeLocalSplit } from '@/components/DateTimeLocalSplit'
+import { LocationAutocompleteInput } from '@/components/LocationAutocompleteInput'
 import {
   Form,
   FormControl,
@@ -11,7 +12,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import { isPickupDatetimeInPast, PICKUP_IN_PAST_MESSAGE } from '@/lib/bookingDateTime'
 import { cn } from '@/lib/utils'
 
@@ -194,15 +194,17 @@ export function QuoteForm({ onContinue, initialValues }: QuoteFormProps) {
                 <FormItem className="quote-form-field">
                   <FormLabel className="sr-only">Pickup location</FormLabel>
                   <FormControl>
-                    <Input
+                    <LocationAutocompleteInput
                       readOnly={routeType === 'fromAirport'}
                       placeholder="From (address, hotel, port)"
-                      autoComplete="off"
                       className={cn(
                         inputClassName,
                         routeType === 'fromAirport' && 'cursor-default',
                       )}
-                      {...field}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      name={field.name}
                     />
                   </FormControl>
                   <FormMessage />
@@ -217,12 +219,14 @@ export function QuoteForm({ onContinue, initialValues }: QuoteFormProps) {
                 <FormItem className="quote-form-field">
                   <FormLabel className="sr-only">Drop-off</FormLabel>
                   <FormControl>
-                    <Input
+                    <LocationAutocompleteInput
                       readOnly={routeType === 'toAirport'}
                       placeholder="To (airport, port, address)"
-                      autoComplete="off"
                       className={cn(inputClassName, routeType === 'toAirport' && 'cursor-default')}
-                      {...field}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      name={field.name}
                     />
                   </FormControl>
                   <FormMessage />

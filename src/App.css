@@ -1013,6 +1013,57 @@
   margin-bottom: 6px;
   width: 100%;
   min-width: 0;
+  position: relative;
+}
+
+.location-autocomplete {
+  position: relative;
+  width: 100%;
+}
+
+.location-autocomplete-list {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid #d5dee9;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+}
+
+.location-autocomplete-option {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: #152032;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.location-autocomplete-option:hover,
+.location-autocomplete-option.is-active {
+  background: #f4f9ff;
+}
+
+.location-autocomplete-loading {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  font-size: 11px;
+  color: #6b7f9b;
+  pointer-events: none;
 }
 
 .quote-card .quote-form {

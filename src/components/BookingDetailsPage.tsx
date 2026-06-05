@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import {
   estimatePrice,
   formatChildSeatsSummaryLine,
+  type BookingDetailsValues,
   type PendingBookingPayload,
 } from '@/lib/bookingsApi'
 import { formatEurBase } from '@/lib/displayCurrency'
@@ -17,6 +18,7 @@ import { cn } from '@/lib/utils'
 
 type BookingDetailsPageProps = {
   quote: QuoteFormValues
+  initialDetails?: BookingDetailsValues
   onBack: () => void
   onContinueToPayment: (payload: PendingBookingPayload) => void
 }
@@ -229,6 +231,84 @@ function formatPhoneCodeLabel(option: PhoneCodeOption): string {
   return `${option.flag} ${option.country} (${option.dialCode})`
 }
 
+function parseStoredPhone(
+  storedPhone: string,
+  fallbackCode: PhoneCodeOption,
+): { code: PhoneCodeOption; local: string } {
+  const trimmed = storedPhone.trim()
+  if (!trimmed) {
+    return { code: fallbackCode, local: '' }
+  }
+
+  const matchedCode = [...PHONE_CODES]
+    .sort((a, b) => b.dialCode.length - a.dialCode.length)
+    .find((option) => trimmed.startsWith(option.dialCode))
+
+  if (!matchedCode) {
+    return { code: fallbackCode, local: trimmed }
+  }
+
+  return {
+    code: matchedCode,
+    local: trimmed.slice(matchedCode.dialCode.length).trim(),
+  }
+}
+
+function createDetailsFormState(quote: QuoteFormValues, initialDetails?: BookingDetailsValues) {
+  const defaultCode = PHONE_CODES.find((x) => x.iso2 === 'ES') ?? PHONE_CODES[0]
+
+  if (!initialDetails) {
+    return {
+      pickupDateTime: quote.departureAt?.trim() ?? '',
+      flightNumber: '',
+      fullName: '',
+      email: '',
+      phoneCode: defaultCode,
+      phone: '',
+      addChildSeats: false,
+      infantCarrierCount: 0,
+      childSeatCount: 0,
+      boosterCount: 0,
+      addDriverNotes: false,
+      bulkyLuggage: false,
+      wheelchairAccessible: false,
+      driverNoteManuscript: '',
+    }
+  }
+
+  const parsedPhone = parseStoredPhone(initialDetails.phone, defaultCode)
+  const infantCarrierCount = initialDetails.infantCarrierCount ?? 0
+  const childSeatCount = initialDetails.childSeatCount ?? 0
+  const boosterCount = initialDetails.boosterCount ?? 0
+  const note = initialDetails.note?.trim() ?? ''
+  const wheelchairAccessible = note.includes('Wheelchair accessible vehicle:')
+  const bulkyLuggage = note.includes('Bulky luggage:')
+  let driverNoteManuscript = note
+  if (wheelchairAccessible) {
+    driverNoteManuscript = driverNoteManuscript.replace('Wheelchair accessible vehicle:', '').trim()
+  }
+  if (bulkyLuggage) {
+    driverNoteManuscript = driverNoteManuscript.replace('Bulky luggage:', '').trim()
+  }
+
+  return {
+    pickupDateTime: quote.departureAt?.trim() ?? '',
+    flightNumber: initialDetails.flightNumber ?? '',
+    fullName: initialDetails.fullName,
+    email: initialDetails.email,
+    phoneCode: parsedPhone.code,
+    phone: parsedPhone.local,
+    addChildSeats: infantCarrierCount + childSeatCount + boosterCount > 0,
+    infantCarrierCount,
+    childSeatCount,
+    boosterCount,
+    addDriverNotes: note.length > 0,
+    bulkyLuggage,
+    wheelchairAccessible,
+    driverNoteManuscript,
+  }
+}
+
 function formatRouteDate(datetimeLocalValue: string | undefined): string {
   if (!datetimeLocalValue) {
     return 'As soon as possible'
@@ -248,26 +328,27 @@ function formatRouteDate(datetimeLocalValue: string | undefined): string {
 
 export function BookingDetailsPage({
   quote,
+  initialDetails,
   onBack,
   onContinueToPayment,
 }: BookingDetailsPageProps) {
-  const [pickupDateTime, setPickupDateTime] = useState(() => quote.departureAt?.trim() ?? '')
-  const [flightNumber, setFlightNumber] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
-  const initialCode = PHONE_CODES.find((x) => x.iso2 === 'ES') ?? PHONE_CODES[0]
-  const [phoneCode, setPhoneCode] = useState<PhoneCodeOption>(initialCode)
-  const [phoneCodeQuery, setPhoneCodeQuery] = useState(formatPhoneCodeLabel(initialCode))
+  const [formState] = useState(() => createDetailsFormState(quote, initialDetails))
+  const [pickupDateTime, setPickupDateTime] = useState(formState.pickupDateTime)
+  const [flightNumber, setFlightNumber] = useState(formState.flightNumber)
+  const [fullName, setFullName] = useState(formState.fullName)
+  const [email, setEmail] = useState(formState.email)
+  const [phoneCode, setPhoneCode] = useState<PhoneCodeOption>(formState.phoneCode)
+  const [phoneCodeQuery, setPhoneCodeQuery] = useState(formatPhoneCodeLabel(formState.phoneCode))
   const [phoneCodeOpen, setPhoneCodeOpen] = useState(false)
-  const [phone, setPhone] = useState('')
-  const [addChildSeats, setAddChildSeats] = useState(false)
-  const [infantCarrierCount, setInfantCarrierCount] = useState(0)
-  const [childSeatCount, setChildSeatCount] = useState(0)
-  const [boosterCount, setBoosterCount] = useState(0)
-  const [addDriverNotes, setAddDriverNotes] = useState(false)
-  const [bulkyLuggage, setBulkyLuggage] = useState(false)
-  const [wheelchairAccessible, setWheelchairAccessible] = useState(false)
-  const [driverNoteManuscript, setDriverNoteManuscript] = useState('')
+  const [phone, setPhone] = useState(formState.phone)
+  const [addChildSeats, setAddChildSeats] = useState(formState.addChildSeats)
+  const [infantCarrierCount, setInfantCarrierCount] = useState(formState.infantCarrierCount)
+  const [childSeatCount, setChildSeatCount] = useState(formState.childSeatCount)
+  const [boosterCount, setBoosterCount] = useState(formState.boosterCount)
+  const [addDriverNotes, setAddDriverNotes] = useState(formState.addDriverNotes)
+  const [bulkyLuggage, setBulkyLuggage] = useState(formState.bulkyLuggage)
+  const [wheelchairAccessible, setWheelchairAccessible] = useState(formState.wheelchairAccessible)
+  const [driverNoteManuscript, setDriverNoteManuscript] = useState(formState.driverNoteManuscript)
   const [isContinuing, setIsContinuing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const phoneCodePickerRef = useRef<HTMLDivElement | null>(null)
