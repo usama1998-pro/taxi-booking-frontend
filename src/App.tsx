@@ -3,7 +3,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { BookingDetailsPage } from '@/components/BookingDetailsPage'
 import { BookingPaymentPage } from '@/components/BookingPaymentPage'
 import { BookingSuccessPage } from '@/components/BookingSuccessPage'
-import { CurrencyMenu } from '@/components/CurrencyMenu'
 import { AdminPortal } from '@/components/AdminPortal'
 import {
   createBookingFromForms,
@@ -27,6 +26,7 @@ import {
 import { navigateTo, replaceLocation } from '@/lib/bookingNavigation'
 import { capturePayPalOrder } from '@/lib/paymentsApi'
 import { QuoteForm, type QuoteFormValues } from '@/components/QuoteForm'
+import { SiteFooter } from '@/components/SiteFooter'
 import './App.css'
 
 const HERO_BG_IMAGES = [
@@ -268,34 +268,40 @@ function App() {
 
   return (
     <main className="page">
-      <div className="hero-bg-crossfade" aria-hidden="true">
-        <div className="hero-bg-slides">
-          {HERO_BG_IMAGES.map((src, i) => (
-            <img
-              key={src}
-              src={src}
-              alt=""
-              className={i === heroBgIndex ? 'is-active' : ''}
-              decoding="async"
-              fetchPriority={i === 0 ? 'high' : 'low'}
-            />
-          ))}
-        </div>
-        <div className="hero-bg-overlay" />
-      </div>
-
       <header className="top-nav">
-        <div className="brand">
-          <span className="brand-name">BarcelonTaxi24</span>
-        </div>
-        <div className="menu-right">
-          <a href="/">EN</a>
-          <CurrencyMenu variant="hero" />
-          <a href="/">Help</a>
+        <div className="top-nav-inner">
+          <div className="brand">
+            <span className="brand-name">BarcelonaTaxi24</span>
+          </div>
+          <nav className="nav-menu" aria-label="Primary">
+            <a href="#home">Home</a>
+            <a href="#services">Services</a>
+            <a href="#fleet">Fleet</a>
+            <a href="#faq">FAQ</a>
+            <a href="#contact">Contact</a>
+          </nav>
         </div>
       </header>
 
       <section className="layout">
+        <div className="hero-backdrop" aria-hidden="true">
+          <div className="hero-bg-crossfade">
+            <div className="hero-bg-slides">
+              {HERO_BG_IMAGES.map((src, i) => (
+                <img
+                  key={src}
+                  src={src}
+                  alt=""
+                  className={i === heroBgIndex ? 'is-active' : ''}
+                  decoding="async"
+                  fetchPriority={i === 0 ? 'high' : 'low'}
+                />
+              ))}
+            </div>
+            <div className="hero-bg-overlay" />
+          </div>
+        </div>
+
         <section className="hero-section">
           <div className="hero-left">
             <div className="hero-body">
@@ -310,7 +316,10 @@ function App() {
                     </svg>
                   </span>
                   <h2>Trained Drivers</h2>
-                  <p>Hand picked &amp; english speaking drivers.</p>
+                  <p>
+                    Hand picked, English-speaking drivers. Licensed, insured, and familiar with
+                    Barcelona airport and city routes.
+                  </p>
                 </li>
                 <li>
                   <span className="benefit-icon" aria-hidden="true">
@@ -320,7 +329,10 @@ function App() {
                     </svg>
                   </span>
                   <h2>Low Prices</h2>
-                  <p>Same price as a regular Taxi from the line.</p>
+                  <p>
+                    Same price as a regular taxi from the line. Fixed prepaid fares with no surge
+                    pricing or hidden fees.
+                  </p>
                 </li>
                 <li>
                   <span className="benefit-icon" aria-hidden="true">
@@ -330,7 +342,10 @@ function App() {
                     </svg>
                   </span>
                   <h2>Flight Monitoring</h2>
-                  <p>Drivers are always on time.</p>
+                  <p>
+                    We track your flight live and adjust pickup if you are delayed, so your driver
+                    is ready when you land.
+                  </p>
                 </li>
                 <li>
                   <span className="benefit-icon" aria-hidden="true">
@@ -343,14 +358,57 @@ function App() {
                     </svg>
                   </span>
                   <h2>Quality Support</h2>
-                  <p>24/7 Email &amp; Phone support.</p>
+                  <p>
+                    24/7 email and phone support before, during, and after your trip. Help is always
+                    one message away.
+                  </p>
                 </li>
               </ul>
             </div>
-
-            <p className="breadcrumbs">Airport taxi &gt; Barcelona &gt; Barcelona Airport Taxi</p>
           </div>
         </section>
+
+        <div className="content-column">
+          <section className="info-section">
+            <article className="article-card">
+              <h2>We provide an easy, friendly and personalized travel experience</h2>
+              <p>
+                We are an affordable airport transfers company to and from Barcelona International
+                El Prat Airport. We also provide inter-city transfers from Barcelona to any city in
+                Spain and across the Europe by private taxi.
+              </p>
+              <p>
+                If you are planning a trip to Barcelona either alone, with family or for business,
+                don&apos;t worry, we&apos;ve got you covered. We want you to enjoy what really
+                matters and gives you a stress-free travel experience.
+              </p>
+              <p>
+                Our qualified and local English-speaking drivers will ensure that you arrive safely
+                to your hotel or destination.
+              </p>
+              <p>
+                With Taxi Barcelonas you can get everything at one place whether you need a taxi to
+                pick you up quickly, a transfer to or from the airport, or a premium taxi and
+                professional chauffeur to get you to your next meeting.
+              </p>
+              <ul className="service-highlights">
+                <li>24/7 service and customer support in Barcelona.</li>
+                <li>Pickup in the arrival&apos;s hall of the airport. (Meet &amp; Greet)</li>
+                <li>Premium official Barcelona taxi sedans and minivans.</li>
+                <li>Fixed and prepaid tariff on all rides.</li>
+              </ul>
+              <p>
+                Your chauffeur will be waiting for you upon arrival at Barcelona International El
+                Prat Airport with a name sign. Our driver will track the flight. If it&apos;s
+                delayed, they&apos;ll wait.
+              </p>
+              <p>
+                All of our rates are fixed and prepaid so you will be able to calculate how much it
+                will exactly cost you for your trip.
+              </p>
+            </article>
+          </section>
+        </div>
 
         <QuoteForm
           initialValues={draftQuote}
@@ -361,6 +419,8 @@ function App() {
           }}
         />
       </section>
+
+      <SiteFooter />
     </main>
   )
 }

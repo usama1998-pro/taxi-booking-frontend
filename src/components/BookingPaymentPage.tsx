@@ -8,19 +8,13 @@ import {
 import { loadStripe, type StripeElementsOptions } from '@stripe/stripe-js'
 import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js'
 
-import { CurrencyMenu } from '@/components/CurrencyMenu'
 import { Button } from '@/components/ui/button'
-import { useDisplayCurrency } from '@/context/DisplayCurrencyContext'
 import {
   createBookingFromForms,
   type BookingSuccessPayload,
   type PendingBookingPayload,
 } from '@/lib/bookingsApi'
-import {
-  BOOKING_BASE_CURRENCY,
-  formatEurBase,
-  formatEurInDisplayCurrency,
-} from '@/lib/displayCurrency'
+import { formatEurBase } from '@/lib/displayCurrency'
 import { isPickupDatetimeInPast, PICKUP_IN_PAST_MESSAGE } from '@/lib/bookingDateTime'
 import { bookingPaymentPath, savePendingBooking } from '@/lib/bookingCheckoutStorage'
 import { isPayPalConfigured } from '@/lib/paypalConfig'
@@ -231,7 +225,6 @@ export function BookingPaymentPage({
   onBack,
   onBookingSuccess,
 }: BookingPaymentPageProps) {
-  const { currency } = useDisplayCurrency()
   const [error, setError] = useState<string | null>(null)
   const [isFinalizing, setIsFinalizing] = useState(false)
   const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null)
@@ -336,13 +329,8 @@ export function BookingPaymentPage({
       <header className="booking-page-nav">
         <div className="booking-page-nav-inner">
           <div className="booking-page-brand">
-            <span className="booking-page-brand-name">BarcelonTaxi24</span>
+            <span className="booking-page-brand-name">BarcelonaTaxi24</span>
           </div>
-          <nav className="booking-page-nav-actions" aria-label="Site utilities">
-            <a href="/">EN</a>
-            <CurrencyMenu variant="surface" />
-            <a href="/">Help</a>
-          </nav>
         </div>
       </header>
 
@@ -441,14 +429,7 @@ export function BookingPaymentPage({
             </div>
             <footer className="booking-summary-footer">
               <p className="booking-price-label">Amount to pay</p>
-              <p className="booking-price">
-                {formatEurInDisplayCurrency(estimatedPriceEur, currency)}
-              </p>
-              {currency !== BOOKING_BASE_CURRENCY ? (
-                <p className="booking-price-eur-hint">
-                  Charged in {BOOKING_BASE_CURRENCY}: {formatEurBase(estimatedPriceEur)}
-                </p>
-              ) : null}
+              <p className="booking-price">{formatEurBase(estimatedPriceEur)}</p>
             </footer>
           </article>
         </aside>

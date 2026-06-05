@@ -15,8 +15,12 @@ import { Input } from '@/components/ui/input'
 import { isPickupDatetimeInPast, PICKUP_IN_PAST_MESSAGE } from '@/lib/bookingDateTime'
 import { cn } from '@/lib/utils'
 
+const routeTypeValues = ['fromAirport', 'toAirport', 'pointToPoint'] as const
+export type RouteType = (typeof routeTypeValues)[number]
+
 const quoteFormSchema = z
   .object({
+    routeType: z.enum(routeTypeValues),
     tripType: z.enum(['oneWay', 'return']),
     pickup: z.string().min(1),
     dropoff: z.string().trim().min(1, 'Enter a destination'),
@@ -56,11 +60,12 @@ type QuoteFormProps = {
   initialValues?: QuoteFormValues | null
 }
 
-const defaultPickup = 'Barcelona-El Prat International Airport (BCN)'
+const BARCELONA_AIRPORT = 'Barcelona-El Prat International Airport (BCN)'
 
 const quoteFormEmpty: QuoteFormValues = {
+  routeType: 'fromAirport',
   tripType: 'oneWay',
-  pickup: defaultPickup,
+  pickup: BARCELONA_AIRPORT,
   dropoff: '',
   departureAt: '',
   returnAt: '',
@@ -75,8 +80,30 @@ function mergeQuoteInitial(initial?: QuoteFormValues | null): QuoteFormValues {
   return { ...quoteFormEmpty, ...initial }
 }
 
+function applyRouteType(
+  routeType: RouteType,
+  current: Pick<QuoteFormValues, 'pickup' | 'dropoff'>,
+): Pick<QuoteFormValues, 'pickup' | 'dropoff'> {
+  if (routeType === 'fromAirport') {
+    return {
+      pickup: BARCELONA_AIRPORT,
+      dropoff: current.dropoff === BARCELONA_AIRPORT ? '' : current.dropoff,
+    }
+  }
+  if (routeType === 'toAirport') {
+    return {
+      pickup: current.pickup === BARCELONA_AIRPORT ? '' : current.pickup,
+      dropoff: BARCELONA_AIRPORT,
+    }
+  }
+  return {
+    pickup: current.pickup === BARCELONA_AIRPORT ? '' : current.pickup,
+    dropoff: current.dropoff === BARCELONA_AIRPORT ? '' : current.dropoff,
+  }
+}
+
 const inputClassName =
-  'quote-field-input !box-border !min-h-[48px] !w-full !min-w-0 !max-w-full !block !rounded-[12px] !border !border-[#d5dee9] !bg-white !px-[14px] !py-[13px] !text-sm !text-[#152032] !shadow-none md:!text-sm placeholder:!text-[#8b97a8]'
+  'quote-field-input !box-border !min-h-[42px] !w-full !min-w-0 !max-w-full !block !rounded-[12px] !border !border-[#d5dee9] !bg-white !px-[14px] !py-[10px] !text-sm !text-[#152032] !shadow-none md:!text-sm placeholder:!text-[#8b97a8]'
 
 export function QuoteForm({ onContinue, initialValues }: QuoteFormProps) {
   const form = useForm<QuoteFormValues>({
@@ -85,13 +112,29 @@ export function QuoteForm({ onContinue, initialValues }: QuoteFormProps) {
   })
 
   const tripType = form.watch('tripType')
+  const routeType = form.watch('routeType')
+
+  function setRouteType(nextRouteType: RouteType) {
+    const current = form.getValues()
+    const nextLocations = applyRouteType(nextRouteType, current)
+    form.setValue('routeType', nextRouteType)
+    form.setValue('pickup', nextLocations.pickup)
+    form.setValue('dropoff', nextLocations.dropoff)
+    form.clearErrors(['pickup', 'dropoff'])
+  }
 
   function onSubmit(values: QuoteFormValues) {
     onContinue(values)
   }
 
   return (
-    <aside className="quote-card" aria-label="Get a price quote form">
+    <aside
+      className={cn(
+        'quote-card',
+        tripType === 'return' ? 'quote-card--return' : 'quote-card--one-way',
+      )}
+      aria-label="Get a price quote form"
+    >
       <div className="quote-card-inner">
         <h2>Get a price quote</h2>
 
@@ -100,7 +143,31 @@ export function QuoteForm({ onContinue, initialValues }: QuoteFormProps) {
             onSubmit={form.handleSubmit(onSubmit)}
             className="quote-form flex w-full min-w-0 flex-col gap-0"
           >
-            <div className="trip-toggle">
+            <div className="trip-toggle route-toggle" role="group" aria-label="Route type">
+              <button
+                type="button"
+                className={routeType === 'fromAirport' ? 'active' : ''}
+                onClick={() => setRouteType('fromAirport')}
+              >
+                From Airport
+              </button>
+              <button
+                type="button"
+                className={routeType === 'toAirport' ? 'active' : ''}
+                onClick={() => setRouteType('toAirport')}
+              >
+                To Airport
+              </button>
+              <button
+                type="button"
+                className={routeType === 'pointToPoint' ? 'active' : ''}
+                onClick={() => setRouteType('pointToPoint')}
+              >
+                Point-to-Point
+              </button>
+            </div>
+
+            <div className="trip-toggle" role="group" aria-label="Trip type">
               <button
                 type="button"
                 className={tripType === 'oneWay' ? 'active' : ''}
@@ -127,7 +194,16 @@ export function QuoteForm({ onContinue, initialValues }: QuoteFormProps) {
                 <FormItem className="quote-form-field">
                   <FormLabel className="sr-only">Pickup location</FormLabel>
                   <FormControl>
-                    <Input readOnly className={cn(inputClassName, 'cursor-default')} {...field} />
+                    <Input
+                      readOnly={routeType === 'fromAirport'}
+                      placeholder="From (address, hotel, port)"
+                      autoComplete="off"
+                      className={cn(
+                        inputClassName,
+                        routeType === 'fromAirport' && 'cursor-default',
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -142,9 +218,10 @@ export function QuoteForm({ onContinue, initialValues }: QuoteFormProps) {
                   <FormLabel className="sr-only">Drop-off</FormLabel>
                   <FormControl>
                     <Input
+                      readOnly={routeType === 'toAirport'}
                       placeholder="To (airport, port, address)"
                       autoComplete="off"
-                      className={inputClassName}
+                      className={cn(inputClassName, routeType === 'toAirport' && 'cursor-default')}
                       {...field}
                     />
                   </FormControl>

@@ -2,21 +2,15 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 
 import { DateTimeLocalSplit } from '@/components/DateTimeLocalSplit'
 import type { QuoteFormValues } from '@/components/QuoteForm'
-import { CurrencyMenu } from '@/components/CurrencyMenu'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { useDisplayCurrency } from '@/context/DisplayCurrencyContext'
 import {
   estimatePrice,
   formatChildSeatsSummaryLine,
   type PendingBookingPayload,
 } from '@/lib/bookingsApi'
-import {
-  BOOKING_BASE_CURRENCY,
-  formatEurBase,
-  formatEurInDisplayCurrency,
-} from '@/lib/displayCurrency'
+import { formatEurBase } from '@/lib/displayCurrency'
 import { isPickupDatetimeInPast, PICKUP_IN_PAST_MESSAGE } from '@/lib/bookingDateTime'
 import { cn } from '@/lib/utils'
 
@@ -256,7 +250,6 @@ export function BookingDetailsPage({
   onBack,
   onContinueToPayment,
 }: BookingDetailsPageProps) {
-  const { currency } = useDisplayCurrency()
   const [pickupDateTime, setPickupDateTime] = useState(() => quote.departureAt?.trim() ?? '')
   const [flightNumber, setFlightNumber] = useState('')
   const [fullName, setFullName] = useState('')
@@ -400,13 +393,8 @@ export function BookingDetailsPage({
       <header className="booking-page-nav">
         <div className="booking-page-nav-inner">
           <div className="booking-page-brand">
-            <span className="booking-page-brand-name">BarcelonTaxi24</span>
+            <span className="booking-page-brand-name">BarcelonaTaxi24</span>
           </div>
-          <nav className="booking-page-nav-actions" aria-label="Site utilities">
-            <a href="/">EN</a>
-            <CurrencyMenu variant="surface" />
-            <a href="/">Help</a>
-          </nav>
         </div>
       </header>
       <section className="booking-container">
@@ -709,12 +697,7 @@ export function BookingDetailsPage({
             </div>
             <footer className="booking-summary-footer">
               <p className="booking-price-label">Estimated total</p>
-              <p className="booking-price">{formatEurInDisplayCurrency(estimatedPrice, currency)}</p>
-              {currency !== BOOKING_BASE_CURRENCY ? (
-                <p className="booking-price-eur-hint">
-                  Estimated fare in {BOOKING_BASE_CURRENCY}: {formatEurBase(estimatedPrice)}
-                </p>
-              ) : null}
+              <p className="booking-price">{formatEurBase(estimatedPrice)}</p>
             </footer>
           </article>
         </aside>
