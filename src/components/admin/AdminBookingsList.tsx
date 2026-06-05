@@ -68,7 +68,6 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
   const [refInput, setRefInput] = useState('')
   const [appliedRefQuery, setAppliedRefQuery] = useState('')
   const [dateDraft, setDateDraft] = useState('')
-  const [appliedDateFilter, setAppliedDateFilter] = useState<Date | null>(null)
   const [appliedScheduledOn, setAppliedScheduledOn] = useState<string | null>(null)
   const [notesBooking, setNotesBooking] = useState<Booking | null>(null)
   const [detailUuid, setDetailUuid] = useState<string | null>(null)
@@ -228,7 +227,6 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
       setActive(scope)
       if (scope === 'current') {
         setDateDraft('')
-        setAppliedDateFilter(null)
         setAppliedScheduledOn(null)
       }
       void refreshScope(scope).then(scrollListTop)
@@ -332,26 +330,22 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
   const applyDateSearch = useCallback(() => {
     const v = dateDraft.trim()
     if (!v) {
-      setAppliedDateFilter(null)
       setAppliedScheduledOn(null)
       void refreshScope(activeRef.current)
       return
     }
     const [y, m, d] = v.split('-').map((x) => parseInt(x, 10))
     if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) {
-      setAppliedDateFilter(null)
       setAppliedScheduledOn(null)
       void refreshScope(activeRef.current)
       return
     }
-    setAppliedDateFilter(new Date(y, m - 1, d))
     setAppliedScheduledOn(v)
     void refreshScope(activeRef.current)
   }, [dateDraft, refreshScope])
 
   const clearDateSearch = useCallback(() => {
     setDateDraft('')
-    setAppliedDateFilter(null)
     setAppliedScheduledOn(null)
     void refreshScope(activeRef.current)
   }, [refreshScope])

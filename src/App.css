@@ -25,7 +25,6 @@
   overflow: hidden;
 }
 
-
 .hero-bg-slides {
   position: absolute;
   inset: 0;
@@ -226,12 +225,9 @@
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1.68fr) minmax(280px, 380px);
-  grid-template-areas:
-    "hero quote"
-    "main quote";
-  grid-template-rows: minmax(min(86vh, 880px), auto) auto;
+  grid-template-areas: "hero quote";
+  grid-template-rows: minmax(min(86vh, 880px), auto);
   column-gap: clamp(36px, 4.5vw, 56px);
-  row-gap: 32px;
   align-items: start;
   max-width: 1220px;
   width: 100%;
@@ -1305,9 +1301,8 @@
     grid-template-columns: 1fr;
     grid-template-areas:
       "hero"
-      "quote"
-      "main";
-    grid-template-rows: auto auto auto;
+      "quote";
+    grid-template-rows: auto auto;
     row-gap: 24px;
     padding: 16px 20px 24px;
   }
@@ -1554,8 +1549,16 @@
 .booking-page {
   min-height: 100vh;
   background:
-    radial-gradient(950px 460px at 8% -10%, rgba(20, 217, 179, 0.18), transparent 62%),
-    radial-gradient(900px 420px at 100% 6%, rgba(59, 130, 246, 0.14), transparent 60%),
+    radial-gradient(
+      950px 460px at 8% -10%,
+      rgba(20, 217, 179, 0.18),
+      transparent 62%
+    ),
+    radial-gradient(
+      900px 420px at 100% 6%,
+      rgba(59, 130, 246, 0.14),
+      transparent 60%
+    ),
     linear-gradient(180deg, #eef5ff 0%, #f3f8ff 38%, #f8fbff 100%);
   padding: 12px 16px 24px;
   box-sizing: border-box;
@@ -1678,7 +1681,9 @@
   cursor: pointer;
   font-size: 13px;
   line-height: 1;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .booking-back-btn:hover {
@@ -1951,7 +1956,9 @@
   font-size: 13px;
   line-height: 1.4;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
 }
 
 .booking-check:hover {
@@ -2154,7 +2161,10 @@
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.35) inset,
     0 14px 28px rgba(12, 160, 132, 0.35);
-  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    filter 0.15s ease;
   line-height: 1.15;
 }
 
@@ -2561,7 +2571,11 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #0d5c2e;
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.22), rgba(34, 197, 94, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.22),
+    rgba(34, 197, 94, 0.1)
+  );
   border: 1px solid rgba(34, 197, 94, 0.35);
   border-radius: 999px;
 }
@@ -2621,7 +2635,11 @@
   justify-content: space-between;
   padding: 0.85rem 0.9rem;
   border-radius: 0.75rem;
-  background: linear-gradient(145deg, rgba(15, 23, 42, 0.04) 0%, rgba(59, 130, 246, 0.06) 100%);
+  background: linear-gradient(
+    145deg,
+    rgba(15, 23, 42, 0.04) 0%,
+    rgba(59, 130, 246, 0.06) 100%
+  );
   border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
@@ -2773,7 +2791,11 @@
   margin: 1.25rem 0 0;
   padding: 1rem 1rem 1rem 0.85rem;
   border-radius: 0.75rem;
-  background: linear-gradient(120deg, rgba(59, 130, 246, 0.09), rgba(99, 102, 241, 0.06));
+  background: linear-gradient(
+    120deg,
+    rgba(59, 130, 246, 0.09),
+    rgba(99, 102, 241, 0.06)
+  );
   border: 1px solid rgba(59, 130, 246, 0.2);
   border-left: 4px solid #3b82f6;
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
