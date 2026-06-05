@@ -8,6 +8,7 @@ import {
 import { loadStripe, type StripeElementsOptions } from '@stripe/stripe-js'
 import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js'
 
+import { BrandLogoIcon } from '@/components/BrandLogoIcon'
 import { Button } from '@/components/ui/button'
 import {
   createBookingFromForms,
@@ -329,6 +330,9 @@ export function BookingPaymentPage({
       <header className="booking-page-nav">
         <div className="booking-page-nav-inner">
           <div className="booking-page-brand">
+            <span className="booking-page-brand-badge">
+              <BrandLogoIcon width={20} height={20} />
+            </span>
             <span className="booking-page-brand-name">BarcelonaTaxi24</span>
           </div>
         </div>

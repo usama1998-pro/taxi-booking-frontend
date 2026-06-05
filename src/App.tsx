@@ -25,6 +25,7 @@ import {
 } from '@/lib/bookingCheckoutStorage'
 import { navigateTo, replaceLocation } from '@/lib/bookingNavigation'
 import { capturePayPalOrder } from '@/lib/paymentsApi'
+import { BrandLogoIcon } from '@/components/BrandLogoIcon'
 import { QuoteForm, type QuoteFormValues } from '@/components/QuoteForm'
 import { SiteFooter } from '@/components/SiteFooter'
 import './App.css'
@@ -271,6 +272,9 @@ function App() {
       <header className="top-nav">
         <div className="top-nav-inner">
           <div className="brand">
+            <span className="brand-badge">
+              <BrandLogoIcon width={22} height={22} />
+            </span>
             <span className="brand-name">BarcelonaTaxi24</span>
           </div>
           <nav className="nav-menu" aria-label="Primary">

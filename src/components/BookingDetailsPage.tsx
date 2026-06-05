@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 
+import { BrandLogoIcon } from '@/components/BrandLogoIcon'
 import { DateTimeLocalSplit } from '@/components/DateTimeLocalSplit'
 import type { QuoteFormValues } from '@/components/QuoteForm'
 import { Button } from '@/components/ui/button'
@@ -393,6 +394,9 @@ export function BookingDetailsPage({
       <header className="booking-page-nav">
         <div className="booking-page-nav-inner">
           <div className="booking-page-brand">
+            <span className="booking-page-brand-badge">
+              <BrandLogoIcon width={20} height={20} />
+            </span>
             <span className="booking-page-brand-name">BarcelonaTaxi24</span>
           </div>
         </div>

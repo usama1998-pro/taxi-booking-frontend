@@ -45,6 +45,8 @@ function VisaIcon() {
   )
 }
 
+import { BrandLogoIcon } from '@/components/BrandLogoIcon'
+
 const PAYMENT_METHODS = [
   { id: 'stripe', name: 'Stripe', Icon: StripeIcon },
   { id: 'paypal', name: 'PayPal', Icon: PayPalIcon },
@@ -62,6 +64,9 @@ export function SiteFooter() {
         <div className="footer-main">
           <div className="footer-brand-col">
             <div className="footer-logo">
+              <span className="footer-logo-icon">
+                <BrandLogoIcon width={24} height={24} />
+              </span>
               <span className="footer-logo-text">BarcelonaTaxi24</span>
             </div>
             <p className="footer-tagline">

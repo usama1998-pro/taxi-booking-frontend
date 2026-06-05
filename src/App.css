@@ -155,6 +155,20 @@
   color: #18253e;
   font-weight: 800;
   font-size: 12px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.brand-logo-img {
+  display: block;
+  object-fit: contain;
+}
+
+.brand-badge .brand-logo-img,
+.footer-logo-icon .brand-logo-img,
+.booking-page-brand-badge .brand-logo-img {
+  width: 100%;
+  height: 100%;
 }
 
 .brand-name {
@@ -1441,6 +1455,10 @@
   justify-content: center;
   font-weight: 800;
   font-size: 14px;
+  flex-shrink: 0;
+  overflow: hidden;
+  padding: 4px;
+  box-sizing: border-box;
 }
 
 .footer-logo-text {
@@ -1629,17 +1647,21 @@
     grid-area: 1 / 1 / 2 / 2;
     top: 0;
     bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
     min-height: 100%;
   }
 
   .hero-section {
     min-height: 0;
-    padding: clamp(20px, 4vh, 36px) 0 24px;
+    padding: clamp(12px, 2.5vh, 20px) 0 20px;
   }
 
   .hero-body {
     justify-content: flex-start;
     min-height: 0;
+    gap: clamp(14px, 2.5vh, 22px);
   }
 
   .quote-card,
@@ -1717,9 +1739,9 @@
 
 /* ─── Mobile ─── */
 @media (max-width: 640px) {
-  .top-nav {
-    padding: 14px 16px 0;
-    gap: 12px;
+  .top-nav-inner {
+    padding: 12px 16px;
+    gap: 10px 14px;
   }
 
   .brand {
@@ -1730,22 +1752,25 @@
     font-size: 17px;
   }
 
-  .menu {
-    order: 3;
-    width: 100%;
+  .nav-menu {
     gap: 8px 14px;
-    flex-wrap: wrap;
-    padding-top: 10px;
   }
 
-  .menu a,
-  .menu-right a {
+  .nav-menu a {
     font-size: 13px;
   }
 
   .layout {
-    padding: 12px 16px 20px;
-    row-gap: 20px;
+    padding: 0 16px 20px;
+    row-gap: 16px;
+  }
+
+  .hero-section {
+    padding: 12px 0 16px;
+  }
+
+  .hero-body {
+    gap: 14px;
   }
 
   .hero-body h1 {
@@ -1958,6 +1983,9 @@
   font-weight: 800;
   font-size: 11px;
   flex-shrink: 0;
+  overflow: hidden;
+  padding: 3px;
+  box-sizing: border-box;
 }
 
 .booking-page-brand-name {
