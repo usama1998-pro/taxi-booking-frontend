@@ -37,6 +37,11 @@ const HERO_BG_IMAGES = [
 ] as const
 
 const HERO_BG_INTERVAL_MS = 5500
+const CONTACT_EMAIL = 'info@barcelonataxi24.com'
+
+function openContactEmail() {
+  window.open(`mailto:${CONTACT_EMAIL}`, '_blank', 'noopener,noreferrer')
+}
 
 function App() {
   const [pathname, setPathname] = useState(() => window.location.pathname)
@@ -277,13 +282,18 @@ function App() {
             </span>
             <span className="brand-name">BarcelonaTaxi24</span>
           </div>
-          <nav className="nav-menu" aria-label="Primary">
-            <a href="#home">Home</a>
-            <a href="#services">Services</a>
-            <a href="#fleet">Fleet</a>
-            <a href="#faq">FAQ</a>
-            <a href="#contact">Contact</a>
-          </nav>
+          <a
+            className="nav-email"
+            href={`mailto:${CONTACT_EMAIL}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(event) => {
+              event.preventDefault()
+              openContactEmail()
+            }}
+          >
+            {CONTACT_EMAIL}
+          </a>
         </div>
       </header>
 

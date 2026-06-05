@@ -133,8 +133,24 @@
   cursor: pointer;
 }
 
-.nav-menu a:hover {
+.nav-email {
+  color: rgba(255, 255, 255, 0.82);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: color 0.15s ease;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+  z-index: 1;
+}
+
+.nav-menu a:hover,
+.nav-email:hover {
   color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .brand {
@@ -1756,7 +1772,8 @@
     gap: 8px 14px;
   }
 
-  .nav-menu a {
+  .nav-menu a,
+  .nav-email {
     font-size: 13px;
   }
 
