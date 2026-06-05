@@ -9,12 +9,14 @@ import {
 
 import { AdminBookingCard, AdminBookingsBrandPlane } from '@/components/admin/AdminBookingCard'
 import { AdminReservationDetailModal } from '@/components/admin/AdminReservationDetailModal'
+import { bookingDayKeyFromIso } from '@/lib/bookingDayKey'
 import { dispatcherBookingsApi } from '@/lib/dispatcherBookingsApi'
 import type { Booking, BookingListTimeScope } from '@/types/booking'
 
 import './AdminBookingsList.css'
 
 const PAGE_SIZE = 20
+const DATE_FILTER_PAGE_SIZE = 100
 
 const TABS: { key: BookingListTimeScope; label: string }[] = [
   { key: 'upcoming', label: 'Upcoming' },
@@ -46,19 +48,6 @@ function emptySection(): SectionState {
   }
 }
 
-function pad2(n: number): string {
-  return String(n).padStart(2, '0')
-}
-
-function localDayKeyFromIso(iso: string): string {
-  const d = new Date(iso)
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
-}
-
-function localDayKeyFromDate(d: Date): string {
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
-}
-
 export type AdminBookingsListProps = {
   accessToken: string
   onLogout: () => void
@@ -80,6 +69,7 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
   const [appliedRefQuery, setAppliedRefQuery] = useState('')
   const [dateDraft, setDateDraft] = useState('')
   const [appliedDateFilter, setAppliedDateFilter] = useState<Date | null>(null)
+  const [appliedScheduledOn, setAppliedScheduledOn] = useState<string | null>(null)
   const [notesBooking, setNotesBooking] = useState<Booking | null>(null)
   const [detailUuid, setDetailUuid] = useState<string | null>(null)
   const [detailBooking, setDetailBooking] = useState<Booking | null>(null)
@@ -88,6 +78,8 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
 
   activeRef.current = active
   byScopeRef.current = byScope
+  const appliedScheduledOnRef = useRef(appliedScheduledOn)
+  appliedScheduledOnRef.current = appliedScheduledOn
 
   const refreshScope = useCallback(
     async (scope: BookingListTimeScope) => {
@@ -113,10 +105,13 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
         },
       }))
       try {
+        const scheduledOn =
+          scope !== 'current' ? appliedScheduledOnRef.current ?? undefined : undefined
         const res = await dispatcherBookingsApi.list(accessToken, {
           page: 1,
-          pageSize: PAGE_SIZE,
+          pageSize: scheduledOn ? DATE_FILTER_PAGE_SIZE : PAGE_SIZE,
           timeScope: scope,
+          scheduledOn,
         })
         setByScope((prev) => ({
           ...prev,
@@ -176,10 +171,13 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
       }))
       try {
         const nextPage = st.page + 1
+        const scheduledOn =
+          scope !== 'current' ? appliedScheduledOnRef.current ?? undefined : undefined
         const res = await dispatcherBookingsApi.list(accessToken, {
           page: nextPage,
-          pageSize: PAGE_SIZE,
+          pageSize: scheduledOn ? DATE_FILTER_PAGE_SIZE : PAGE_SIZE,
           timeScope: scope,
+          scheduledOn,
         })
         setByScope((prev) => {
           const cur = prev[scope]
@@ -231,6 +229,7 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
       if (scope === 'current') {
         setDateDraft('')
         setAppliedDateFilter(null)
+        setAppliedScheduledOn(null)
       }
       void refreshScope(scope).then(scrollListTop)
     },
@@ -264,17 +263,13 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
           .includes(q),
       )
     }
-    if (appliedDateFilter && active !== 'current') {
-      const fk = localDayKeyFromDate(appliedDateFilter)
-      rows = rows.filter((b) => localDayKeyFromIso(b.scheduledTime) === fk)
-    }
     return rows
-  }, [section.items, appliedRefQuery, appliedDateFilter, active])
+  }, [section.items, appliedRefQuery])
 
   const gridBookings = useMemo(() => {
     const groups = new Map<string, Booking[]>()
     for (const b of filtered) {
-      const k = localDayKeyFromIso(b.scheduledTime)
+      const k = bookingDayKeyFromIso(b.scheduledTime)
       if (!groups.has(k)) {
         groups.set(k, [])
       }
@@ -338,20 +333,28 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
     const v = dateDraft.trim()
     if (!v) {
       setAppliedDateFilter(null)
+      setAppliedScheduledOn(null)
+      void refreshScope(activeRef.current)
       return
     }
     const [y, m, d] = v.split('-').map((x) => parseInt(x, 10))
     if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) {
       setAppliedDateFilter(null)
+      setAppliedScheduledOn(null)
+      void refreshScope(activeRef.current)
       return
     }
     setAppliedDateFilter(new Date(y, m - 1, d))
-  }, [dateDraft])
+    setAppliedScheduledOn(v)
+    void refreshScope(activeRef.current)
+  }, [dateDraft, refreshScope])
 
   const clearDateSearch = useCallback(() => {
     setDateDraft('')
     setAppliedDateFilter(null)
-  }, [])
+    setAppliedScheduledOn(null)
+    void refreshScope(activeRef.current)
+  }, [refreshScope])
 
   const openDetail = useCallback((uuid: string) => {
     setDetailUuid(uuid)
@@ -560,7 +563,7 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
               <AdminBookingCard
                 key={item.uuid}
                 booking={item}
-                dateDayKey={localDayKeyFromIso(item.scheduledTime)}
+                dateDayKey={bookingDayKeyFromIso(item.scheduledTime)}
                 onNotes={() => setNotesBooking(item)}
                 onView={() => openDetail(item.uuid)}
                 onDelete={() => onDeleteBooking(item)}

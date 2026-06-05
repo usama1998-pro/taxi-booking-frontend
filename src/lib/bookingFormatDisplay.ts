@@ -25,35 +25,45 @@ function formatLocationJson(value: unknown): string {
   }
 }
 
+function readLocationJson(value: unknown): Record<string, unknown> | null {
+  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    return value as Record<string, unknown>
+  }
+  return null
+}
+
+/** Place name from pickup JSON (`label` / `name` only — matches backend storage). */
+function pickupLocationNameOnly(value: unknown): string {
+  if (value == null) {
+    return '—'
+  }
+  if (typeof value === 'string') {
+    const s = value.trim()
+    return s || '—'
+  }
+  const o = readLocationJson(value)
+  if (o) {
+    const name =
+      (typeof o.label === 'string' && o.label.trim()) ||
+      (typeof o.name === 'string' && o.name.trim())
+    if (name) {
+      return name
+    }
+  }
+  return '—'
+}
+
 export function bookingPickupLabel(b: Booking): string {
-  return formatLocationJson(b.pickupLocation)
+  return pickupLocationNameOnly(b.pickupLocation)
 }
 
 export function bookingDropoffLabel(b: Booking): string {
   return formatLocationJson(b.dropoffLocation)
 }
 
-/** "From :" line — label plus street/address when stored on JSON. */
+/** Pickup line — place name only (no meeting point / street suffix). */
 export function bookingFromDisplay(b: Booking): string {
-  const loc = b.pickupLocation
-  if (typeof loc === 'object' && loc !== null && !Array.isArray(loc)) {
-    const o = loc as Record<string, unknown>
-    const label =
-      (typeof o.label === 'string' && o.label) ||
-      (typeof o.name === 'string' && o.name) ||
-      (typeof o.formattedAddress === 'string' && o.formattedAddress)
-    const extra =
-      (typeof o.meetingAddress === 'string' && o.meetingAddress.trim()) ||
-      (typeof o.address === 'string' && o.address.trim()) ||
-      (typeof o.street === 'string' && o.street.trim())
-    if (label && extra && !String(label).includes(extra)) {
-      return `${label}, ${extra}`
-    }
-    if (label) {
-      return String(label)
-    }
-  }
-  return bookingPickupLabel(b)
+  return pickupLocationNameOnly(b.pickupLocation)
 }
 
 /** "To :" line */
