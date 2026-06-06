@@ -72,12 +72,8 @@ export function clearBookingSuccess(): void {
   }
 }
 
-export function bookingRefFromUuid(uuid: string): string {
-  return `BK-${uuid}`
-}
-
-export function bookingSuccessPath(uuid: string): string {
-  const ref = encodeURIComponent(bookingRefFromUuid(uuid))
+export function bookingSuccessPath(bookingReference: string): string {
+  const ref = encodeURIComponent(bookingReference.trim())
   return `/booking/success?ref=${ref}`
 }
 

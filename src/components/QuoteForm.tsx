@@ -13,6 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { isPickupDatetimeInPast, PICKUP_IN_PAST_MESSAGE } from '@/lib/bookingDateTime'
+import { MAX_LUGGAGE, MAX_PASSENGERS } from '@/lib/bookingLimits'
 import { cn } from '@/lib/utils'
 
 const routeTypeValues = ['fromAirport', 'toAirport', 'pointToPoint'] as const
@@ -26,8 +27,8 @@ const quoteFormSchema = z
     dropoff: z.string().trim().min(1, 'Enter a destination'),
     departureAt: z.string().optional(),
     returnAt: z.string().optional(),
-    passengers: z.number().int().min(1).max(16),
-    luggage: z.number().int().min(0).max(16),
+    passengers: z.number().int().min(1).max(MAX_PASSENGERS),
+    luggage: z.number().int().min(0).max(MAX_LUGGAGE),
   })
   .superRefine((data, ctx) => {
     if (data.departureAt?.trim() && isPickupDatetimeInPast(data.departureAt)) {
@@ -295,7 +296,7 @@ export function QuoteForm({ onContinue, initialValues }: QuoteFormProps) {
                       <span>{field.value}</span>
                       <button
                         type="button"
-                        onClick={() => field.onChange(Math.min(16, Number(field.value) + 1))}
+                        onClick={() => field.onChange(Math.min(MAX_PASSENGERS, Number(field.value) + 1))}
                       >
                         +
                       </button>
@@ -321,7 +322,7 @@ export function QuoteForm({ onContinue, initialValues }: QuoteFormProps) {
                       <span>{field.value}</span>
                       <button
                         type="button"
-                        onClick={() => field.onChange(Math.min(16, Number(field.value) + 1))}
+                        onClick={() => field.onChange(Math.min(MAX_LUGGAGE, Number(field.value) + 1))}
                       >
                         +
                       </button>

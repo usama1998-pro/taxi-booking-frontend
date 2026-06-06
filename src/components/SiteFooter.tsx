@@ -1,3 +1,5 @@
+import { BRAND_NAME } from '@/lib/brandConfig'
+
 function StripeIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className="footer-payment-icon footer-payment-icon--stripe">
@@ -67,7 +69,7 @@ export function SiteFooter() {
               <span className="footer-logo-icon">
                 <BrandLogoIcon width={24} height={24} />
               </span>
-              <span className="footer-logo-text">BarcelonaTaxi24</span>
+              <span className="footer-logo-text">{BRAND_NAME}</span>
             </div>
             <p className="footer-tagline">
               Fixed-price airport transfers across Barcelona and Catalonia.
@@ -99,7 +101,7 @@ export function SiteFooter() {
             24/7 customer support · Barcelona El Prat airport transfers · Meet &amp; greet in
             arrivals
           </p>
-          <p className="footer-copy">&copy; {year} BarcelonaTaxi24. All rights reserved.</p>
+          <p className="footer-copy">&copy; {year} {BRAND_NAME}. All rights reserved.</p>
         </div>
       </div>
     </footer>

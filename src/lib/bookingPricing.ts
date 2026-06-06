@@ -15,9 +15,9 @@ const PASSENGER_LUGGAGE_RATE_TIERS = [
 const MAX_TIER_PRICE =
   PASSENGER_LUGGAGE_RATE_TIERS[PASSENGER_LUGGAGE_RATE_TIERS.length - 1].price;
 
-const INFANT_CARRIER_FARE = 5;
-const CHILD_SEAT_FARE = 5;
-const BOOSTER_FARE = 5;
+const INFANT_CARRIER_FARE = 7;
+const CHILD_SEAT_FARE = 7;
+const BOOSTER_FARE = 7;
 
 export function calculatePassengerLuggageFare(
   passengerCount: number,
@@ -45,10 +45,12 @@ export function calculateBookingPrice(
   infantCarrierCount = 0,
   childSeatCount = 0,
   boosterCount = 0,
+  isReturnTrip = false,
 ): number {
   const baseFare = calculatePassengerLuggageFare(passengerCount, luggageCount);
   const infantExtra = Math.max(0, infantCarrierCount) * INFANT_CARRIER_FARE;
   const childExtra = Math.max(0, childSeatCount) * CHILD_SEAT_FARE;
   const boosterExtra = Math.max(0, boosterCount) * BOOSTER_FARE;
-  return baseFare + infantExtra + childExtra + boosterExtra;
+  const oneWayTotal = baseFare + infantExtra + childExtra + boosterExtra;
+  return isReturnTrip ? oneWayTotal * 2 : oneWayTotal;
 }

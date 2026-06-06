@@ -10,6 +10,7 @@ import {
 import { AdminBookingCard, AdminBookingsBrandPlane } from '@/components/admin/AdminBookingCard'
 import { AdminReservationDetailModal } from '@/components/admin/AdminReservationDetailModal'
 import { bookingDayKeyFromIso } from '@/lib/bookingDayKey'
+import { BRAND_NAME } from '@/lib/brandConfig'
 import { dispatcherBookingsApi } from '@/lib/dispatcherBookingsApi'
 import type { Booking, BookingListTimeScope } from '@/types/booking'
 
@@ -397,8 +398,8 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
       <div className="admin-bookings-shell__brand">
         <AdminBookingsBrandPlane />
         <div className="admin-bookings-shell__brand-text">
-          <div className="admin-bookings-shell__logo-line">TAXI BARCELONA24</div>
-          <div className="admin-bookings-shell__brand-sub">Taxi Barcelona24</div>
+          <div className="admin-bookings-shell__logo-line">{BRAND_NAME.toUpperCase()}</div>
+          <div className="admin-bookings-shell__brand-sub">{BRAND_NAME}</div>
         </div>
       </div>
       <nav className="admin-bookings-shell__tabs" aria-label="Booking period">

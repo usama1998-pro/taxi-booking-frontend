@@ -57,8 +57,15 @@ async function copyToClipboard(text: string): Promise<boolean> {
   }
 }
 
+function resolveBookingReference(data: BookingSuccessPayload): string {
+  if (data.bookingReference?.trim()) {
+    return data.bookingReference.trim()
+  }
+  return `BK-${data.uuid}`
+}
+
 function buildSummaryText(data: BookingSuccessPayload): string {
-  const bookingRef = `BK-${data.uuid}`
+  const bookingRef = resolveBookingReference(data)
   const lines: string[] = [`Booking number: ${bookingRef}`]
   if (data.childSeatsSummary) {
     lines.push(`Child seats: ${data.childSeatsSummary}`)
@@ -70,7 +77,7 @@ export function BookingSuccessPage({ data, onBookAnother }: BookingSuccessPagePr
   const [copied, setCopied] = useState<CopyKey>(null)
 
   const summary = useMemo(() => buildSummaryText(data), [data])
-  const bookingRef = `BK-${data.uuid}`
+  const bookingRef = resolveBookingReference(data)
 
   useEffect(() => {
     if (!copied) return

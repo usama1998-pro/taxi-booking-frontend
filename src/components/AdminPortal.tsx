@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { AdminBookingsList } from '@/components/admin/AdminBookingsList'
 import { apiBaseUrl } from '@/lib/apiBase'
+import { BRAND_NAME } from '@/lib/brandConfig'
 import { decodeJwtPayload, isSuperAdminStaffPayload } from '@/lib/adminJwt'
 import './AdminPortal.css'
 
@@ -130,7 +131,7 @@ export function AdminPortal() {
   return (
     <main className="admin-portal-page">
       <div className="admin-portal-inner">
-        <p className="admin-brand-title">Taxi Barcelona24</p>
+        <p className="admin-brand-title">{BRAND_NAME}</p>
         <section className="admin-card admin-card--login">
           <h1 className="admin-title admin-title--login">Admin Login</h1>
           <p className="admin-subtitle admin-subtitle--login">Sign in as super admin to continue.</p>

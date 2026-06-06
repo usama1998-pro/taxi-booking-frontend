@@ -11,6 +11,7 @@ export type AssignedDriverSummary = {
 
 export type CreateBookingResult = {
   uuid: string;
+  bookingReference: string;
   assignmentMessage?: string;
   /** Present when the backend assigned a driver to this booking. */
   driver: AssignedDriverSummary | null;
@@ -21,6 +22,7 @@ export type CreateBookingResult = {
 /** Shown after a successful booking: driver set when the API assigned one. */
 export type BookingSuccessPayload = {
   uuid: string;
+  bookingReference: string;
   assignmentMessage?: string;
   driver: AssignedDriverSummary | null;
   childSeatsSummary?: string | null;
@@ -73,6 +75,7 @@ export function estimatePriceFromPassengersAndLuggage(
   infantCarrierCount = 0,
   childSeatCount = 0,
   boosterCount = 0,
+  isReturnTrip = false,
 ): number {
   return calculateBookingPrice(
     passengers,
@@ -80,6 +83,7 @@ export function estimatePriceFromPassengersAndLuggage(
     infantCarrierCount,
     childSeatCount,
     boosterCount,
+    isReturnTrip,
   );
 }
 
@@ -91,12 +95,14 @@ export function estimatePrice(
     boosterCount?: number;
   },
 ): number {
+  const isReturnTrip = values.tripType === 'return';
   return estimatePriceFromPassengersAndLuggage(
     values.passengers,
     values.luggage,
     options?.infantCarrierCount ?? 0,
     options?.childSeatCount ?? 0,
     options?.boosterCount ?? 0,
+    isReturnTrip,
   );
 }
 
@@ -179,6 +185,7 @@ export async function createBookingFromForms(
   const json = (await res.json().catch(() => null)) as {
     message?: string | string[];
     uuid?: string;
+    bookingReference?: string;
     assignmentMessage?: string;
     driver?: unknown;
     infantCarrierCount?: unknown;
@@ -194,6 +201,10 @@ export async function createBookingFromForms(
   if (!json?.uuid) {
     throw new Error("Booking created but no booking uuid was returned.");
   }
+  const bookingReference = json.bookingReference?.trim();
+  if (!bookingReference) {
+    throw new Error("Booking created but no booking reference was returned.");
+  }
   const infant =
     typeof json.infantCarrierCount === "number" ? json.infantCarrierCount : 0;
   const childN =
@@ -202,6 +213,7 @@ export async function createBookingFromForms(
     typeof json.boosterCount === "number" ? json.boosterCount : 0;
   return {
     uuid: json.uuid,
+    bookingReference,
     assignmentMessage:
       typeof json.assignmentMessage === "string"
         ? json.assignmentMessage

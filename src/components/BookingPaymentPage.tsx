@@ -15,6 +15,7 @@ import {
   type BookingSuccessPayload,
   type PendingBookingPayload,
 } from '@/lib/bookingsApi'
+import { BRAND_NAME } from '@/lib/brandConfig'
 import { formatEurBase } from '@/lib/displayCurrency'
 import { isPickupDatetimeInPast, PICKUP_IN_PAST_MESSAGE } from '@/lib/bookingDateTime'
 import { bookingPaymentPath, savePendingBooking } from '@/lib/bookingCheckoutStorage'
@@ -313,6 +314,7 @@ export function BookingPaymentPage({
       const result = await createBookingFromForms(quote, details)
       onBookingSuccess({
         uuid: result.uuid,
+        bookingReference: result.bookingReference,
         assignmentMessage: result.assignmentMessage,
         driver: result.driver,
         childSeatsSummary: result.childSeatsSummary,
@@ -333,7 +335,7 @@ export function BookingPaymentPage({
             <span className="booking-page-brand-badge">
               <BrandLogoIcon width={20} height={20} />
             </span>
-            <span className="booking-page-brand-name">BarcelonaTaxi24</span>
+            <span className="booking-page-brand-name">{BRAND_NAME}</span>
           </div>
         </div>
       </header>

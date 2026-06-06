@@ -28,6 +28,7 @@ import { capturePayPalOrder } from '@/lib/paymentsApi'
 import { BrandLogoIcon } from '@/components/BrandLogoIcon'
 import { QuoteForm, type QuoteFormValues } from '@/components/QuoteForm'
 import { SiteFooter } from '@/components/SiteFooter'
+import { BRAND_NAME } from '@/lib/brandConfig'
 import {
   CONTACT_EMAIL,
   CONTACT_WHATSAPP,
@@ -77,7 +78,7 @@ function App() {
       setPendingBooking(null)
       setBookingSuccess(payload)
       setPaypalReturnMessage(null)
-      replaceLocation(bookingSuccessPath(payload.uuid), handlePathChange)
+      replaceLocation(bookingSuccessPath(payload.bookingReference), handlePathChange)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     },
     [handlePathChange],
@@ -156,6 +157,7 @@ function App() {
         if (cancelled) return
         completeBookingSuccess({
           uuid: result.uuid,
+          bookingReference: result.bookingReference,
           assignmentMessage: result.assignmentMessage,
           driver: result.driver,
           childSeatsSummary: result.childSeatsSummary,
@@ -299,7 +301,7 @@ function App() {
             <span className="brand-badge">
               <BrandLogoIcon width={22} height={22} />
             </span>
-            <span className="brand-name">BarcelonaTaxi24</span>
+            <span className="brand-name">{BRAND_NAME}</span>
           </div>
           <div className="nav-contact">
             <a
@@ -438,7 +440,7 @@ function App() {
                 to your hotel or destination.
               </p>
               <p>
-                With Taxi Barcelonas you can get everything at one place whether you need a taxi to
+                With {BRAND_NAME} you can get everything at one place whether you need a taxi to
                 pick you up quickly, a transfer to or from the airport, or a premium taxi and
                 professional chauffeur to get you to your next meeting.
               </p>

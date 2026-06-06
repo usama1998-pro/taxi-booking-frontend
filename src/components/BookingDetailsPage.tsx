@@ -12,6 +12,7 @@ import {
   type BookingDetailsValues,
   type PendingBookingPayload,
 } from '@/lib/bookingsApi'
+import { BRAND_NAME } from '@/lib/brandConfig'
 import { formatEurBase } from '@/lib/displayCurrency'
 import { isPickupDatetimeInPast, PICKUP_IN_PAST_MESSAGE } from '@/lib/bookingDateTime'
 import { cn } from '@/lib/utils'
@@ -478,7 +479,7 @@ export function BookingDetailsPage({
             <span className="booking-page-brand-badge">
               <BrandLogoIcon width={20} height={20} />
             </span>
-            <span className="booking-page-brand-name">BarcelonaTaxi24</span>
+            <span className="booking-page-brand-name">{BRAND_NAME}</span>
           </div>
         </div>
       </header>
