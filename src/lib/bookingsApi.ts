@@ -1,5 +1,6 @@
 import type { QuoteFormValues } from "@/components/QuoteForm";
 import { isPickupDatetimeInPast, PICKUP_IN_PAST_MESSAGE } from "@/lib/bookingDateTime";
+import { calculateBookingPrice } from "@/lib/bookingPricing";
 
 /** Driver contact returned when a booking is created with an assigned driver (from DB). */
 export type AssignedDriverSummary = {
@@ -42,13 +43,6 @@ export type PendingBookingPayload = {
   estimatedPriceEur: number;
 };
 
-const BASE_FARE = 44;
-const EXTRA_PASSENGER_FARE = 6;
-const LUGGAGE_FARE = 2;
-const INFANT_CARRIER_FARE = 5;
-const CHILD_SEAT_FARE = 5;
-const BOOSTER_FARE = 5;
-
 function getApiBaseUrl(): string {
   const raw = import.meta.env.VITE_API_BASE_URL;
   if (typeof raw !== "string" || !raw.trim()) {
@@ -80,12 +74,13 @@ export function estimatePriceFromPassengersAndLuggage(
   childSeatCount = 0,
   boosterCount = 0,
 ): number {
-  const passengerExtra = Math.max(0, passengers - 1) * EXTRA_PASSENGER_FARE;
-  const luggageExtra = Math.max(0, luggage) * LUGGAGE_FARE;
-  const infantExtra = Math.max(0, infantCarrierCount) * INFANT_CARRIER_FARE;
-  const childExtra = Math.max(0, childSeatCount) * CHILD_SEAT_FARE;
-  const boosterExtra = Math.max(0, boosterCount) * BOOSTER_FARE;
-  return BASE_FARE + passengerExtra + luggageExtra + infantExtra + childExtra + boosterExtra;
+  return calculateBookingPrice(
+    passengers,
+    luggage,
+    infantCarrierCount,
+    childSeatCount,
+    boosterCount,
+  );
 }
 
 export function estimatePrice(
