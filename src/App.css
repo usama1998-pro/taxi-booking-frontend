@@ -1057,6 +1057,13 @@
 .location-autocomplete {
   position: relative;
   width: 100%;
+  min-width: 0;
+  min-height: 42px;
+}
+
+.location-autocomplete-host {
+  width: 100%;
+  min-width: 0;
 }
 
 .location-autocomplete-list {
@@ -1093,6 +1100,13 @@
 .location-autocomplete-option:hover,
 .location-autocomplete-option.is-active {
   background: #f4f9ff;
+}
+
+.location-autocomplete-status {
+  display: block;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #6b7f9b;
 }
 
 .location-autocomplete-loading {
@@ -2880,6 +2894,13 @@
   color: #0d9e82 !important;
   line-height: 1.05;
   letter-spacing: -0.03em;
+}
+
+.booking-price-error {
+  margin: 8px 0 0 !important;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #b42318;
 }
 
 .booking-price-eur-hint {

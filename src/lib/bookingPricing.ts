@@ -19,6 +19,14 @@ const INFANT_CARRIER_FARE = 7;
 const CHILD_SEAT_FARE = 7;
 const BOOSTER_FARE = 7;
 
+/** Short trips: passenger/luggage tiers only (no per-km surcharge). */
+export const DISTANCE_SHORT_TRIP_MAX_KM = 17;
+/** Mid-range per-km rate (EUR), inclusive 17–32 km. */
+export const DISTANCE_MID_RATE_EUR_PER_KM = 4;
+export const DISTANCE_MID_MAX_KM = 32;
+/** Long-range per-km rate (EUR) above 32 km. */
+export const DISTANCE_LONG_RATE_EUR_PER_KM = 2;
+
 export function calculatePassengerLuggageFare(
   passengerCount: number,
   luggageCount: number,
@@ -39,6 +47,21 @@ export function calculatePassengerLuggageFare(
   return Math.min(...fitting.map((tier) => tier.price));
 }
 
+export function calculateDistanceSurcharge(distanceKm: number): number {
+  const km = Math.max(0, distanceKm);
+  if (km < DISTANCE_SHORT_TRIP_MAX_KM) {
+    return 0;
+  }
+  if (km <= DISTANCE_MID_MAX_KM) {
+    return km * DISTANCE_MID_RATE_EUR_PER_KM;
+  }
+  return km * DISTANCE_LONG_RATE_EUR_PER_KM;
+}
+
+function usesPassengerLuggagePricing(distanceKm?: number): boolean {
+  return distanceKm == null || distanceKm <= DISTANCE_MID_MAX_KM;
+}
+
 export function calculateBookingPrice(
   passengerCount: number,
   luggageCount: number,
@@ -46,11 +69,21 @@ export function calculateBookingPrice(
   childSeatCount = 0,
   boosterCount = 0,
   isReturnTrip = false,
+  distanceKm?: number,
 ): number {
-  const baseFare = calculatePassengerLuggageFare(passengerCount, luggageCount);
   const infantExtra = Math.max(0, infantCarrierCount) * INFANT_CARRIER_FARE;
   const childExtra = Math.max(0, childSeatCount) * CHILD_SEAT_FARE;
   const boosterExtra = Math.max(0, boosterCount) * BOOSTER_FARE;
-  const oneWayTotal = baseFare + infantExtra + childExtra + boosterExtra;
-  return isReturnTrip ? oneWayTotal * 2 : oneWayTotal;
+  const seatExtras = infantExtra + childExtra + boosterExtra;
+
+  const tierFare = usesPassengerLuggagePricing(distanceKm)
+    ? calculatePassengerLuggageFare(passengerCount, luggageCount)
+    : 0;
+  const distanceFare =
+    distanceKm != null && distanceKm >= DISTANCE_SHORT_TRIP_MAX_KM
+      ? calculateDistanceSurcharge(distanceKm)
+      : 0;
+  const oneWayTotal = tierFare + distanceFare + seatExtras;
+  const total = isReturnTrip ? oneWayTotal * 2 : oneWayTotal;
+  return Math.round(total);
 }

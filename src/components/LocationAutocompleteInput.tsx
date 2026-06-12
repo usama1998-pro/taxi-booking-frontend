@@ -1,7 +1,7 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useState } from 'react'
 
 import { Input } from '@/components/ui/input'
-import { searchLocations } from '@/lib/locationSearch'
+import { usePlaceSuggestions } from '@/hooks/usePlaceSuggestions'
 import { cn } from '@/lib/utils'
 
 type LocationAutocompleteInputProps = {
@@ -14,6 +14,43 @@ type LocationAutocompleteInputProps = {
   name?: string
 }
 
+function SuggestionList({
+  suggestions,
+  loading,
+  onSelect,
+}: {
+  suggestions: string[]
+  loading: boolean
+  onSelect: (value: string) => void
+}) {
+  if (loading && suggestions.length === 0) {
+    return (
+      <li>
+        <span className="location-autocomplete-status" aria-live="polite">
+          Searching…
+        </span>
+      </li>
+    )
+  }
+
+  return (
+    <>
+      {suggestions.map((suggestion) => (
+        <li key={suggestion}>
+          <button
+            type="button"
+            className="location-autocomplete-option"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => onSelect(suggestion)}
+          >
+            {suggestion}
+          </button>
+        </li>
+      ))}
+    </>
+  )
+}
+
 export function LocationAutocompleteInput({
   value,
   onChange,
@@ -23,99 +60,20 @@ export function LocationAutocompleteInput({
   className,
   name,
 }: LocationAutocompleteInputProps) {
-  const listId = useId()
-  const rootRef = useRef<HTMLDivElement | null>(null)
-  const [isOpen, setIsOpen] = useState(false)
-  const [activeIndex, setActiveIndex] = useState(-1)
-  const [suggestions, setSuggestions] = useState<string[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [suppressSuggestions, setSuppressSuggestions] = useState(false)
 
-  useEffect(() => {
-    if (readOnly) {
-      setSuggestions([])
-      setIsOpen(false)
-      return
-    }
+  const searchEnabled = !readOnly && !suppressSuggestions && value.trim().length >= 1
+  const { suggestions, loading } = usePlaceSuggestions(value, searchEnabled)
+  const isOpen = searchEnabled && (loading || suggestions.length > 0)
 
-    const trimmed = value.trim()
-    if (trimmed.length < 2) {
-      setSuggestions([])
-      setIsOpen(false)
-      setIsLoading(false)
-      return
-    }
-
-    const controller = new AbortController()
-    const timer = window.setTimeout(() => {
-      setIsLoading(true)
-      void searchLocations(trimmed, controller.signal)
-        .then((results) => {
-          setSuggestions(results)
-          setIsOpen(results.length > 0)
-          setActiveIndex(-1)
-        })
-        .catch(() => {
-          setSuggestions([])
-          setIsOpen(false)
-        })
-        .finally(() => {
-          setIsLoading(false)
-        })
-    }, 350)
-
-    return () => {
-      window.clearTimeout(timer)
-      controller.abort()
-    }
-  }, [readOnly, value])
-
-  useEffect(() => {
-    function onPointerDown(event: MouseEvent) {
-      const root = rootRef.current
-      if (!root) return
-      if (!root.contains(event.target as Node)) {
-        setIsOpen(false)
-        setActiveIndex(-1)
-      }
-    }
-
-    document.addEventListener('mousedown', onPointerDown)
-    return () => document.removeEventListener('mousedown', onPointerDown)
-  }, [])
-
-  function selectSuggestion(nextValue: string) {
-    onChange(nextValue)
-    setIsOpen(false)
-    setActiveIndex(-1)
+  const selectSuggestion = (next: string) => {
+    setSuppressSuggestions(true)
+    onChange(next)
   }
 
-  function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (!isOpen || suggestions.length === 0) {
-      return
-    }
-
-    if (event.key === 'ArrowDown') {
-      event.preventDefault()
-      setActiveIndex((index) => (index + 1) % suggestions.length)
-      return
-    }
-
-    if (event.key === 'ArrowUp') {
-      event.preventDefault()
-      setActiveIndex((index) => (index <= 0 ? suggestions.length - 1 : index - 1))
-      return
-    }
-
-    if (event.key === 'Enter' && activeIndex >= 0) {
-      event.preventDefault()
-      selectSuggestion(suggestions[activeIndex] ?? value)
-      return
-    }
-
-    if (event.key === 'Escape') {
-      setIsOpen(false)
-      setActiveIndex(-1)
-    }
+  const handleInputChange = (next: string) => {
+    setSuppressSuggestions(false)
+    onChange(next)
   }
 
   if (readOnly) {
@@ -132,54 +90,26 @@ export function LocationAutocompleteInput({
   }
 
   return (
-    <div ref={rootRef} className="location-autocomplete">
+    <div className="location-autocomplete">
       <Input
         name={name}
         value={value}
         placeholder={placeholder}
         autoComplete="off"
-        role="combobox"
-        aria-expanded={isOpen}
-        aria-controls={listId}
-        aria-autocomplete="list"
-        aria-activedescendant={activeIndex >= 0 ? `${listId}-option-${activeIndex}` : undefined}
         className={className}
-        onChange={(event) => onChange(event.target.value)}
-        onFocus={() => {
-          if (suggestions.length > 0) {
-            setIsOpen(true)
-          }
-        }}
-        onBlur={() => {
-          onBlur?.()
-        }}
-        onKeyDown={handleKeyDown}
+        onChange={(event) => handleInputChange(event.target.value)}
+        onBlur={() => onBlur?.()}
       />
 
       {isOpen ? (
-        <ul id={listId} className="location-autocomplete-list" role="listbox">
-          {suggestions.map((suggestion, index) => (
-            <li key={suggestion} role="presentation">
-              <button
-                id={`${listId}-option-${index}`}
-                type="button"
-                role="option"
-                aria-selected={index === activeIndex}
-                className={cn(
-                  'location-autocomplete-option',
-                  index === activeIndex && 'is-active',
-                )}
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => selectSuggestion(suggestion)}
-              >
-                {suggestion}
-              </button>
-            </li>
-          ))}
+        <ul className="location-autocomplete-list" role="listbox">
+          <SuggestionList
+            suggestions={suggestions}
+            loading={loading}
+            onSelect={selectSuggestion}
+          />
         </ul>
       ) : null}
-
-      {isLoading ? <span className="location-autocomplete-loading">Searching…</span> : null}
     </div>
   )
 }

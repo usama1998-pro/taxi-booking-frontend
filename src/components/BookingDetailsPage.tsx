@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import {
-  estimatePrice,
   formatChildSeatsSummaryLine,
   type BookingDetailsValues,
   type PendingBookingPayload,
 } from '@/lib/bookingsApi'
+import { useRouteQuote } from '@/hooks/useRouteQuote'
 import { BRAND_NAME } from '@/lib/brandConfig'
 import { formatEurBase } from '@/lib/displayCurrency'
 import { isPickupDatetimeInPast, PICKUP_IN_PAST_MESSAGE } from '@/lib/bookingDateTime'
@@ -358,15 +358,28 @@ export function BookingDetailsPage({
     () => ({ ...quote, departureAt: pickupDateTime }),
     [quote, pickupDateTime],
   )
-  const estimatedPrice = useMemo(
-    () =>
-      estimatePrice(quoteForSubmit, {
-        infantCarrierCount: addChildSeats ? infantCarrierCount : 0,
-        childSeatCount: addChildSeats ? childSeatCount : 0,
-        boosterCount: addChildSeats ? boosterCount : 0,
-      }),
-    [addChildSeats, boosterCount, childSeatCount, infantCarrierCount, quoteForSubmit],
+  const routeQuotePayload = useMemo(
+    () => ({
+      from: quoteForSubmit.pickup,
+      to: quoteForSubmit.dropoff,
+      passengerCount: quoteForSubmit.passengers,
+      luggageCount: quoteForSubmit.luggage,
+      infantCarrierCount: addChildSeats ? infantCarrierCount : 0,
+      childSeatCount: addChildSeats ? childSeatCount : 0,
+      boosterCount: addChildSeats ? boosterCount : 0,
+      isReturnTrip: quoteForSubmit.tripType === 'return',
+    }),
+    [
+      addChildSeats,
+      boosterCount,
+      childSeatCount,
+      infantCarrierCount,
+      quoteForSubmit,
+    ],
   )
+  const { quote: routeQuote, loading: routeQuoteLoading, error: routeQuoteError } =
+    useRouteQuote(routeQuotePayload)
+  const estimatedPrice = routeQuote?.estimatedPriceEur ?? null
   const routeDate = useMemo(() => formatRouteDate(pickupDateTime || undefined), [pickupDateTime])
   const tripChildSeatsChip = useMemo(
     () => formatChildSeatsSummaryLine(infantCarrierCount, childSeatCount, boosterCount),
@@ -447,6 +460,16 @@ export function BookingDetailsPage({
 
     if (pickupDateTime.trim() && isPickupDatetimeInPast(pickupDateTime)) {
       setError(PICKUP_IN_PAST_MESSAGE)
+      return
+    }
+
+    if (routeQuoteLoading) {
+      setError('Price is still being calculated. Please wait a moment.')
+      return
+    }
+
+    if (routeQuoteError || estimatedPrice == null) {
+      setError(routeQuoteError ?? 'Could not calculate the route price. Check pickup and drop-off.')
       return
     }
 
@@ -780,10 +803,25 @@ export function BookingDetailsPage({
                   <span className="booking-summary-value">{tripChildSeatsChip}</span>
                 </div>
               ) : null}
+              {routeQuote ? (
+                <div className="booking-summary-row">
+                  <span className="booking-summary-label">Distance</span>
+                  <span className="booking-summary-value">{routeQuote.distanceKm} km</span>
+                </div>
+              ) : null}
             </div>
             <footer className="booking-summary-footer">
               <p className="booking-price-label">Estimated total</p>
-              <p className="booking-price">{formatEurBase(estimatedPrice)}</p>
+              <p className="booking-price">
+                {routeQuoteLoading
+                  ? 'Calculating…'
+                  : estimatedPrice != null
+                    ? formatEurBase(estimatedPrice)
+                    : '—'}
+              </p>
+              {routeQuoteError ? (
+                <p className="booking-price-error">{routeQuoteError}</p>
+              ) : null}
             </footer>
           </article>
         </aside>
