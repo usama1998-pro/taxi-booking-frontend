@@ -36,8 +36,7 @@ export function calculatePassengerLuggageFare(
   const effectiveLuggage = luggage === 0 ? 1 : luggage;
 
   const fitting = PASSENGER_LUGGAGE_RATE_TIERS.filter(
-    (tier) =>
-      tier.passengers >= passengers && tier.luggage >= effectiveLuggage,
+    (tier) => tier.passengers >= passengers && tier.luggage >= effectiveLuggage,
   );
 
   if (fitting.length === 0) {
@@ -56,10 +55,6 @@ export function calculateDistanceSurcharge(distanceKm: number): number {
     return km * DISTANCE_MID_RATE_EUR_PER_KM;
   }
   return km * DISTANCE_LONG_RATE_EUR_PER_KM;
-}
-
-function usesPassengerLuggagePricing(_distanceKm?: number): boolean {
-  return true;
 }
 
 export function calculateBookingPrice(
