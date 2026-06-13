@@ -58,8 +58,8 @@ export function calculateDistanceSurcharge(distanceKm: number): number {
   return km * DISTANCE_LONG_RATE_EUR_PER_KM;
 }
 
-function usesPassengerLuggagePricing(distanceKm?: number): boolean {
-  return distanceKm == null || distanceKm <= DISTANCE_MID_MAX_KM;
+function usesPassengerLuggagePricing(_distanceKm?: number): boolean {
+  return true;
 }
 
 export function calculateBookingPrice(
@@ -76,9 +76,7 @@ export function calculateBookingPrice(
   const boosterExtra = Math.max(0, boosterCount) * BOOSTER_FARE;
   const seatExtras = infantExtra + childExtra + boosterExtra;
 
-  const tierFare = usesPassengerLuggagePricing(distanceKm)
-    ? calculatePassengerLuggageFare(passengerCount, luggageCount)
-    : 0;
+  const tierFare = calculatePassengerLuggageFare(passengerCount, luggageCount);
   const distanceFare =
     distanceKm != null && distanceKm >= DISTANCE_SHORT_TRIP_MAX_KM
       ? calculateDistanceSurcharge(distanceKm)
