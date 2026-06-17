@@ -1,5 +1,6 @@
 import type { QuoteFormValues } from "@/components/QuoteForm";
 import { isPickupDatetimeInPast, PICKUP_IN_PAST_MESSAGE } from "@/lib/bookingDateTime";
+import { buildBookingLocations } from "@/lib/bookingLocation";
 import { calculateBookingPrice } from "@/lib/bookingPricing";
 
 /** Driver contact returned when a booking is created with an assigned driver (from DB). */
@@ -153,6 +154,9 @@ export async function createBookingFromForms(
   quote: QuoteFormValues,
   details: BookingDetailsValues,
 ): Promise<CreateBookingResult> {
+  const flight = details.flightNumber?.trim() || undefined;
+  const { pickupLocation, dropoffLocation } = buildBookingLocations(quote, flight);
+
   const res = await fetch(`${getApiBaseUrl()}/bookings`, {
     method: "POST",
     headers: {
@@ -162,10 +166,10 @@ export async function createBookingFromForms(
       customerName: details.fullName,
       customerEmail: details.email,
       customerPhone: details.phone,
-      flightNumber: details.flightNumber?.trim() || undefined,
+      flightNumber: flight,
       returnTime: quote.returnAt ? toIsoOrNow(quote.returnAt) : undefined,
-      pickupLocation: { label: quote.pickup },
-      dropoffLocation: { label: quote.dropoff },
+      pickupLocation,
+      dropoffLocation,
       scheduledTime: toIsoOrNow(quote.departureAt),
       price: estimatePrice(quote, {
         infantCarrierCount: details.infantCarrierCount ?? 0,
