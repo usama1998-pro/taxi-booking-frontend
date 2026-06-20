@@ -1,4 +1,4 @@
-import { apiBaseUrl } from '@/lib/apiBase'
+import { apiUrl, readApiErrorMessage } from '@/lib/apiBase'
 import type {
   Booking,
   BookingListTimeScope,
@@ -6,23 +6,11 @@ import type {
 } from '@/types/booking'
 
 async function readErrorMessage(res: Response): Promise<string> {
-  const text = await res.text()
-  try {
-    const j = JSON.parse(text) as { message?: unknown }
-    if (Array.isArray(j.message)) {
-      return j.message.map(String).join('\n')
-    }
-    if (typeof j.message === 'string') {
-      return j.message
-    }
-  } catch {
-    /* ignore */
-  }
-  return text.trim() || `Request failed (${res.status})`
+  return readApiErrorMessage(res)
 }
 
 async function authorizedJson<T>(path: string, token: string): Promise<T> {
-  const url = `${apiBaseUrl()}${path}`
+  const url = apiUrl(path)
   const res = await fetch(url, {
     headers: {
       Accept: 'application/json',
@@ -36,7 +24,7 @@ async function authorizedJson<T>(path: string, token: string): Promise<T> {
 }
 
 async function authorizedJsonDelete(path: string, token: string): Promise<void> {
-  const url = `${apiBaseUrl()}${path}`
+  const url = apiUrl(path)
   const res = await fetch(url, {
     method: 'DELETE',
     headers: {
@@ -58,6 +46,8 @@ export const dispatcherBookingsApi = {
       timeScope?: BookingListTimeScope
       /** Pickup calendar day in server TZ (`YYYY-MM-DD`). */
       scheduledOn?: string
+      /** Partial match on booking reference (server-side). */
+      bookingReference?: string
     } = {},
   ): Promise<PaginatedBookings> {
     const page = params.page ?? 1
@@ -71,6 +61,9 @@ export const dispatcherBookingsApi = {
     }
     if (params.scheduledOn) {
       q.set('scheduledOn', params.scheduledOn)
+    }
+    if (params.bookingReference?.trim()) {
+      q.set('bookingReference', params.bookingReference.trim())
     }
     return authorizedJson<PaginatedBookings>(`/bookings?${q.toString()}`, token)
   },

@@ -65,10 +65,14 @@ function StripeCardCheckout({
   const stripe = useStripe()
   const elements = useElements()
   const [isPaying, setIsPaying] = useState(false)
+  const [elementReady, setElementReady] = useState(false)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!stripe || !elements || disabled || isPaying) {
+    if (!stripe || !elements || !elementReady || disabled || isPaying) {
+      if (!elementReady) {
+        onError('Card form is not ready yet. Please wait or refresh the page.')
+      }
       return
     }
 
@@ -101,11 +105,17 @@ function StripeCardCheckout({
 
   return (
     <form className="booking-payment-stripe-form" onSubmit={handleSubmit}>
-      <PaymentElement />
+      <PaymentElement
+        onReady={() => setElementReady(true)}
+        onLoadError={(event) => {
+          setElementReady(false)
+          onError(event.error?.message ?? 'Could not load card payment form.')
+        }}
+      />
       <Button
         type="submit"
         className="booking-submit booking-payment-stripe-submit"
-        disabled={disabled || isPaying || !stripe || !elements}
+        disabled={disabled || isPaying || !stripe || !elements || !elementReady}
       >
         {isPaying ? 'Processing card…' : 'Pay with card'}
       </Button>

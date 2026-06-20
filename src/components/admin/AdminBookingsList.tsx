@@ -80,6 +80,8 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
   byScopeRef.current = byScope
   const appliedScheduledOnRef = useRef(appliedScheduledOn)
   appliedScheduledOnRef.current = appliedScheduledOn
+  const appliedRefQueryRef = useRef(appliedRefQuery)
+  appliedRefQueryRef.current = appliedRefQuery
 
   const refreshScope = useCallback(
     async (scope: BookingListTimeScope) => {
@@ -107,11 +109,14 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
       try {
         const scheduledOn =
           scope !== 'current' ? appliedScheduledOnRef.current ?? undefined : undefined
+        const bookingReference = appliedRefQueryRef.current.trim() || undefined
+        const useLargePage = Boolean(scheduledOn || bookingReference)
         const res = await dispatcherBookingsApi.list(accessToken, {
           page: 1,
-          pageSize: scheduledOn ? DATE_FILTER_PAGE_SIZE : PAGE_SIZE,
+          pageSize: useLargePage ? DATE_FILTER_PAGE_SIZE : PAGE_SIZE,
           timeScope: scope,
           scheduledOn,
+          bookingReference,
         })
         setByScope((prev) => ({
           ...prev,
@@ -156,7 +161,11 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
       if (st.loading || st.loadingMore || st.items.length === 0) {
         return
       }
-      if (st.totalPages > 0 && st.page >= st.totalPages) {
+      const hasMore =
+        st.totalPages > 0
+          ? st.page < st.totalPages
+          : st.total > st.items.length
+      if (!hasMore) {
         return
       }
 
@@ -173,11 +182,14 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
         const nextPage = st.page + 1
         const scheduledOn =
           scope !== 'current' ? appliedScheduledOnRef.current ?? undefined : undefined
+        const bookingReference = appliedRefQueryRef.current.trim() || undefined
+        const useLargePage = Boolean(scheduledOn || bookingReference)
         const res = await dispatcherBookingsApi.list(accessToken, {
           page: nextPage,
-          pageSize: scheduledOn ? DATE_FILTER_PAGE_SIZE : PAGE_SIZE,
+          pageSize: useLargePage ? DATE_FILTER_PAGE_SIZE : PAGE_SIZE,
           timeScope: scope,
           scheduledOn,
+          bookingReference,
         })
         setByScope((prev) => {
           const cur = prev[scope]
@@ -240,7 +252,7 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
       return
     }
     void refreshScope(activeRef.current)
-  }, [accessToken, refreshScope])
+  }, [accessToken, appliedRefQuery, appliedScheduledOn, refreshScope])
 
   const onManualRefresh = useCallback(async () => {
     setRefreshing(true)
@@ -252,22 +264,9 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
 
   const section = byScope[active]
 
-  const filtered = useMemo(() => {
-    let rows = section.items
-    const q = appliedRefQuery.trim().toLowerCase()
-    if (q) {
-      rows = rows.filter((b) =>
-        String(b.bookingReference ?? '')
-          .toLowerCase()
-          .includes(q),
-      )
-    }
-    return rows
-  }, [section.items, appliedRefQuery])
-
   const gridBookings = useMemo(() => {
     const groups = new Map<string, Booking[]>()
-    for (const b of filtered) {
+    for (const b of section.items) {
       const k = bookingDayKeyFromIso(b.scheduledTime)
       if (!groups.has(k)) {
         groups.set(k, [])
@@ -291,14 +290,14 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
       out.push(...chunk)
     }
     return out
-  }, [filtered, active])
+  }, [section.items, active])
 
   const emptyCopy =
     active === 'past'
-      ? 'No past trips yet.'
+      ? 'No completed, cancelled, or overdue trips.'
       : active === 'current'
-        ? 'No open trips due today or earlier.'
-        : 'No reservations from tomorrow onward.'
+        ? "No open trips due today that haven't passed yet."
+        : 'No upcoming open trips from tomorrow onward.'
 
   const onDeleteBooking = useCallback(
     (b: Booking) => {
@@ -499,8 +498,10 @@ export function AdminBookingsList({ accessToken, onLogout }: AdminBookingsListPr
   const canLoadMore =
     section.items.length > 0 &&
     !section.loading &&
-    section.totalPages > 0 &&
-    section.page < section.totalPages
+    !section.loadingMore &&
+    (section.totalPages > 0
+      ? section.page < section.totalPages
+      : section.total > section.items.length)
 
   const listFooter =
     section.items.length > 0 && !section.loading ? (

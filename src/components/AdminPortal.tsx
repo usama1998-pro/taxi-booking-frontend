@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { AdminBookingsList } from '@/components/admin/AdminBookingsList'
-import { apiBaseUrl } from '@/lib/apiBase'
+import { apiBaseUrl, apiUrl, parseJsonErrorBody } from '@/lib/apiBase'
 import { BRAND_NAME } from '@/lib/brandConfig'
 import { decodeJwtPayload, isSuperAdminStaffPayload } from '@/lib/adminJwt'
 import './AdminPortal.css'
@@ -18,12 +18,9 @@ function clearAdminSession(): void {
 async function readSigninError(res: Response): Promise<string> {
   const text = await res.text()
   try {
-    const j = JSON.parse(text) as { message?: unknown }
-    if (Array.isArray(j.message)) {
-      return j.message.map(String).join('\n')
-    }
-    if (typeof j.message === 'string') {
-      return j.message
+    const parsed = parseJsonErrorBody(JSON.parse(text))
+    if (parsed) {
+      return parsed
     }
   } catch {
     /* ignore */
@@ -66,7 +63,7 @@ export function AdminPortal() {
     setSubmitting(true)
 
     try {
-      const res = await fetch(`${apiBaseUrl()}/auth/signin`, {
+      const res = await fetch(apiUrl('/auth/signin'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
@@ -101,7 +98,7 @@ export function AdminPortal() {
       setPassword('')
     } catch {
       setErrorMessage(
-        `Could not reach the API at ${apiBaseUrl()}. Set VITE_API_BASE_URL in frontend/.env if the backend runs elsewhere.`,
+        `Could not reach the API at ${apiBaseUrl()} (versioned under ${apiBaseUrl()}/api/v1). Set VITE_API_BASE_URL in frontend/.env if the backend runs elsewhere.`,
       )
     } finally {
       setSubmitting(false)

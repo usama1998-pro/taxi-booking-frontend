@@ -1,4 +1,4 @@
-import { apiBaseUrl } from '@/lib/apiBase'
+import { apiUrl, parseJsonErrorBody } from '@/lib/apiBase'
 
 export type StripePaymentIntentResponse = {
   clientSecret: string
@@ -7,7 +7,7 @@ export type StripePaymentIntentResponse = {
 export async function createStripePaymentIntent(
   amountEur: number,
 ): Promise<StripePaymentIntentResponse> {
-  const res = await fetch(`${apiBaseUrl()}/payments/stripe/intent`, {
+  const res = await fetch(apiUrl('/payments/stripe/intent'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ amountEur }),
@@ -19,9 +19,8 @@ export async function createStripePaymentIntent(
   } | null
 
   if (!res.ok) {
-    const msg = json?.message
-    const text = Array.isArray(msg) ? msg.join(' ') : msg
-    throw new Error(text ?? 'Could not start card payment.')
+    const text = parseJsonErrorBody(json) ?? 'Could not start card payment.'
+    throw new Error(text)
   }
 
   if (!json?.clientSecret) {
@@ -40,7 +39,7 @@ export async function createPayPalOrder(
   description: string,
   options?: { returnUrl: string; cancelUrl: string },
 ): Promise<PayPalOrderResponse> {
-  const res = await fetch(`${apiBaseUrl()}/payments/paypal/order`, {
+  const res = await fetch(apiUrl('/payments/paypal/order'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -57,9 +56,8 @@ export async function createPayPalOrder(
   } | null
 
   if (!res.ok) {
-    const msg = json?.message
-    const text = Array.isArray(msg) ? msg.join(' ') : msg
-    throw new Error(text ?? 'Could not start PayPal payment.')
+    const text = parseJsonErrorBody(json) ?? 'Could not start PayPal payment.'
+    throw new Error(text)
   }
 
   if (!json?.orderId) {
@@ -70,7 +68,7 @@ export async function createPayPalOrder(
 }
 
 export async function capturePayPalOrder(orderId: string): Promise<void> {
-  const res = await fetch(`${apiBaseUrl()}/payments/paypal/capture`, {
+  const res = await fetch(apiUrl('/payments/paypal/capture'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ orderId }),
@@ -81,8 +79,7 @@ export async function capturePayPalOrder(orderId: string): Promise<void> {
   } | null
 
   if (!res.ok) {
-    const msg = json?.message
-    const text = Array.isArray(msg) ? msg.join(' ') : msg
-    throw new Error(text ?? 'PayPal payment could not be completed.')
+    const text = parseJsonErrorBody(json) ?? 'PayPal payment could not be completed.'
+    throw new Error(text)
   }
 }

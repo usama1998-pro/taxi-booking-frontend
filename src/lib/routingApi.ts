@@ -1,4 +1,4 @@
-import { apiBaseUrl } from '@/lib/apiBase'
+import { apiUrl, parseJsonErrorBody } from '@/lib/apiBase'
 
 export type PlaceSuggestion = {
   description: string
@@ -25,7 +25,7 @@ export type RouteQuoteResponse = {
 }
 
 export async function fetchPlaces(input: string): Promise<PlaceSuggestion[]> {
-  const res = await fetch(`${apiBaseUrl()}/routing/places`, {
+  const res = await fetch(apiUrl('/routing/places'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ input }),
@@ -37,9 +37,8 @@ export async function fetchPlaces(input: string): Promise<PlaceSuggestion[]> {
     | null
 
   if (!res.ok) {
-    const msg = json && !Array.isArray(json) ? json.message : undefined
-    const text = Array.isArray(msg) ? msg.join(' ') : msg
-    throw new Error(text ?? 'Could not load address suggestions.')
+    const text = parseJsonErrorBody(json) ?? 'Could not load address suggestions.'
+    throw new Error(text)
   }
 
   return Array.isArray(json) ? json : []
@@ -48,7 +47,7 @@ export async function fetchPlaces(input: string): Promise<PlaceSuggestion[]> {
 export async function fetchRouteQuote(
   payload: RouteQuotePayload,
 ): Promise<RouteQuoteResponse> {
-  const res = await fetch(`${apiBaseUrl()}/routing/quote`, {
+  const res = await fetch(apiUrl('/routing/quote'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -60,9 +59,8 @@ export async function fetchRouteQuote(
     | null
 
   if (!res.ok) {
-    const msg = json && !('estimatedPriceEur' in json) ? json.message : undefined
-    const text = Array.isArray(msg) ? msg.join(' ') : msg
-    throw new Error(text ?? 'Could not calculate route price.')
+    const text = parseJsonErrorBody(json) ?? 'Could not calculate route price.'
+    throw new Error(text)
   }
 
   if (!json || typeof json !== 'object' || !('estimatedPriceEur' in json)) {

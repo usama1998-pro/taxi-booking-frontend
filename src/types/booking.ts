@@ -52,5 +52,5 @@ export type PaginatedBookings = {
   totalPages: number
 }
 
-/** Matches backend `GET /bookings?timeScope=` */
+/** Matches FastAPI `GET /api/v1/bookings?timeScope=` */
 export type BookingListTimeScope = 'past' | 'current' | 'upcoming'

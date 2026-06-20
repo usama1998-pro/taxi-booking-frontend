@@ -1,4 +1,5 @@
 import type { QuoteFormValues } from "@/components/QuoteForm";
+import { apiUrl, readApiErrorMessage } from "@/lib/apiBase";
 import { isPickupDatetimeInPast, PICKUP_IN_PAST_MESSAGE } from "@/lib/bookingDateTime";
 import { buildBookingLocations } from "@/lib/bookingLocation";
 import { calculateBookingPrice } from "@/lib/bookingPricing";
@@ -45,16 +46,6 @@ export type PendingBookingPayload = {
   details: BookingDetailsValues;
   estimatedPriceEur: number;
 };
-
-function getApiBaseUrl(): string {
-  const raw = import.meta.env.VITE_API_BASE_URL;
-  if (typeof raw !== "string" || !raw.trim()) {
-    throw new Error(
-      "VITE_API_BASE_URL is not set. Define it in frontend/.env (see .env.example).",
-    );
-  }
-  return raw.trim().replace(/\/$/, "");
-}
 
 function toIsoOrNow(datetimeLocalValue: string | undefined): string {
   if (!datetimeLocalValue?.trim()) {
@@ -157,7 +148,7 @@ export async function createBookingFromForms(
   const flight = details.flightNumber?.trim() || undefined;
   const { pickupLocation, dropoffLocation } = buildBookingLocations(quote, flight);
 
-  const res = await fetch(`${getApiBaseUrl()}/bookings`, {
+  const res = await fetch(apiUrl("/bookings"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -198,9 +189,7 @@ export async function createBookingFromForms(
   } | null;
 
   if (!res.ok) {
-    const msg = json?.message;
-    const text = Array.isArray(msg) ? msg.join(" ") : msg;
-    throw new Error(text ?? "Booking submission failed.");
+    throw new Error(await readApiErrorMessage(res));
   }
   if (!json?.uuid) {
     throw new Error("Booking created but no booking uuid was returned.");
