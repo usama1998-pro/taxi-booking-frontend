@@ -50,12 +50,21 @@
   min-width: 0;
 }
 
+.admin-booking-card__name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
 .admin-booking-card__name {
   font-weight: 700;
   font-size: 1rem;
   color: #000;
   line-height: 1.25;
-  margin-bottom: 10px;
+  flex: 1;
+  min-width: 0;
 }
 
 .admin-booking-card__route {

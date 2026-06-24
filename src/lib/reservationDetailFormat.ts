@@ -1,4 +1,5 @@
 import type { Booking } from '@/types/booking'
+import { PUBLIC_SITE_URL } from '@/lib/brandConfig'
 import { bookingFlightLine, bookingFromDisplay, bookingToDisplay } from '@/lib/bookingFormatDisplay'
 
 function pad2(n: number): string {
@@ -61,7 +62,7 @@ export function bookingArrivalFlight(b: Booking): string | null {
 
 export function publicBookingPageUrl(uuid: string): string {
   const raw = import.meta.env.VITE_PUBLIC_BOOKING_SITE_URL as string | undefined
-  const base = (raw ?? 'https://www.taxibarcelona24.com').replace(/\/$/, '')
+  const base = (raw ?? PUBLIC_SITE_URL).replace(/\/$/, '')
   return `${base}/booking/${uuid}`
 }
 

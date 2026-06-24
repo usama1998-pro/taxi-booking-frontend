@@ -50,6 +50,16 @@
   letter-spacing: 0.02em;
 }
 
+.admin-res-detail__title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-res-detail__header--accent .admin-res-detail__title {
+  color: #fff;
+}
+
 .admin-res-detail__close-x {
   border: 0;
   background: transparent;
@@ -63,6 +73,15 @@
 .admin-res-detail__close-x:hover {
   background: #f1f3f5;
   color: #212529;
+}
+
+.admin-res-detail__close-x--on-accent {
+  color: #fff;
+}
+
+.admin-res-detail__close-x--on-accent:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
 }
 
 .admin-res-detail__body {
@@ -105,7 +124,6 @@
 }
 
 .admin-res-detail__section-head {
-  background: #29b6f6;
   color: #fff;
   font-weight: 700;
   font-size: 0.9375rem;

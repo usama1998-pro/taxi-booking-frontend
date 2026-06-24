@@ -7,6 +7,7 @@ import {
 } from '@/lib/bookingFormatDisplay'
 import type { Booking } from '@/types/booking'
 
+import { BookingSourceIcon } from './BookingSourceIcon'
 import './AdminBookingCard.css'
 
 function formatListTime24(iso: string): string {
@@ -42,7 +43,10 @@ export function AdminBookingCard({ booking, dateDayKey, onNotes, onView, onDelet
             <span className="admin-booking-card__time24">{formatListTime24(booking.scheduledTime)}</span>
           </div>
           <div className="admin-booking-card__detail-col">
-            <div className="admin-booking-card__name">{passenger}</div>
+            <div className="admin-booking-card__name-row">
+              <div className="admin-booking-card__name">{passenger}</div>
+              <BookingSourceIcon booking={booking} size={22} strokeWidth={2} />
+            </div>
             <p className="admin-booking-card__route">
               <span className="admin-booking-card__route-prefix">From : </span>
               {bookingFromDisplay(booking)}

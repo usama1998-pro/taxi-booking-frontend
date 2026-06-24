@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import { Loader2, X } from 'lucide-react'
 
-import { bookingPassengerLabel } from '@/lib/bookingFormatDisplay'
+import { bookingDetailAccentColor, bookingPassengerLabel } from '@/lib/bookingFormatDisplay'
+import { PUBLIC_SITE_DISPLAY } from '@/lib/brandConfig'
 import {
   bookingArrivalAirline,
   bookingArrivalFlight,
@@ -16,9 +17,10 @@ import {
 } from '@/lib/reservationDetailFormat'
 import type { Booking } from '@/types/booking'
 
+import { BookingSourceIcon } from './BookingSourceIcon'
 import './AdminReservationDetailModal.css'
 
-const SITE_DISPLAY = 'www.taxibarcelona24.com'
+import './AdminReservationDetailModal.css'
 
 type Props = {
   open: boolean
@@ -50,6 +52,7 @@ export function AdminReservationDetailModal({
 
   const pageUrl = booking ? publicBookingPageUrl(booking.uuid) : ''
   const footerTs = booking ? formatFooterTimestamp(booking.createdAt) : ''
+  const accentColor = booking ? bookingDetailAccentColor(booking) : '#29b6f6'
 
   return (
     <div className="admin-res-detail-overlay" role="presentation" onClick={onClose}>
@@ -60,15 +63,26 @@ export function AdminReservationDetailModal({
         aria-labelledby="admin-res-detail-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="admin-res-detail__header">
+        <header
+          className={`admin-res-detail__header${booking && !loading && !error ? ' admin-res-detail__header--accent' : ''}`}
+          style={booking && !loading && !error ? { backgroundColor: accentColor } : undefined}
+        >
           <h2 id="admin-res-detail-title" className="admin-res-detail__title">
             {booking && !loading && !error ? (
-              <>RES # {reservationDisplayNumber(booking)}</>
+              <span className="admin-res-detail__title-row">
+                <span>RES # {reservationDisplayNumber(booking)}</span>
+                <BookingSourceIcon booking={booking} size={22} strokeWidth={2} color="#fff" />
+              </span>
             ) : (
               <>Reservation</>
             )}
           </h2>
-          <button type="button" className="admin-res-detail__close-x" onClick={onClose} aria-label="Close">
+          <button
+            type="button"
+            className={`admin-res-detail__close-x${booking && !loading && !error ? ' admin-res-detail__close-x--on-accent' : ''}`}
+            onClick={onClose}
+            aria-label="Close"
+          >
             <X size={22} strokeWidth={2} />
           </button>
         </header>
@@ -83,7 +97,9 @@ export function AdminReservationDetailModal({
           ) : booking ? (
             <>
               <section className="admin-res-detail__section">
-                <div className="admin-res-detail__section-head">Pickup Information</div>
+                <div className="admin-res-detail__section-head" style={{ backgroundColor: accentColor }}>
+                  Pickup Information
+                </div>
                 <div className="admin-res-detail__section-body">
                   <Row label="Pickup Address:">{bookingPickupAddress(booking)}</Row>
                   <Row label="Passengers:">{booking.passengerCount}</Row>
@@ -95,14 +111,18 @@ export function AdminReservationDetailModal({
               </section>
 
               <section className="admin-res-detail__section">
-                <div className="admin-res-detail__section-head">Dropoff Information</div>
+                <div className="admin-res-detail__section-head" style={{ backgroundColor: accentColor }}>
+                  Dropoff Information
+                </div>
                 <div className="admin-res-detail__section-body">
                   <Row label="Dropoff Address:">{bookingDropoffAddress(booking)}</Row>
                 </div>
               </section>
 
               <section className="admin-res-detail__section">
-                <div className="admin-res-detail__section-head">Customer Information</div>
+                <div className="admin-res-detail__section-head" style={{ backgroundColor: accentColor }}>
+                  Customer Information
+                </div>
                 <div className="admin-res-detail__section-body">
                   <Row label="Customer Name:">{bookingPassengerLabel(booking)}</Row>
                   <Row label="Phone number:">
@@ -130,7 +150,7 @@ export function AdminReservationDetailModal({
                   height={90}
                   loading="lazy"
                 />
-                <span className="admin-res-detail__site">{SITE_DISPLAY}</span>
+                <span className="admin-res-detail__site">{PUBLIC_SITE_DISPLAY}</span>
                 <span className="admin-res-detail__stamp">{footerTs}</span>
               </div>
             </>

@@ -90,10 +90,84 @@ export function bookingFlightLine(b: Booking): BookingFlightLine | null {
   return null
 }
 
-/** App vs email booking heuristic for list icon. */
-export function bookingSourceIsGuestApp(b: Booking): boolean {
+function guestAppEmail(email: string): boolean {
+  return email.startsWith('guest.') && email.endsWith('@taxibarcelona24.guest')
+}
+
+/** Reservation created in the mobile app (guest email from phone). */
+export function isAppBooking(b: Booking): boolean {
   const email = (b.customerEmail || b.user?.email || '').toLowerCase()
-  return email.includes('@taxibarcelona24.guest')
+  return guestAppEmail(email)
+}
+
+/** Reservation imported from a Viator booking email (BR- reference or tagged note). */
+export function isViatorEmailBooking(b: Booking): boolean {
+  const email = (b.customerEmail || b.user?.email || '').toLowerCase()
+  if (guestAppEmail(email)) {
+    return false
+  }
+  if (email.startsWith('viator.')) {
+    return true
+  }
+  const note = (b.note ?? '').trim()
+  if (note.startsWith('[Viator')) {
+    return true
+  }
+  const ref = (b.bookingReference ?? '').trim().toUpperCase()
+  return ref.startsWith('BR-')
+}
+
+/** Reservation submitted via the public website (real customer email). */
+export function isWebsiteBooking(b: Booking): boolean {
+  return !isViatorEmailBooking(b) && !isAppBooking(b)
+}
+
+export type BookingSourceIcon = 'mail' | 'smartphone' | 'globe'
+
+/** Viator email vs app vs website icon on list cards. */
+export function bookingSourceIcon(b: Booking): BookingSourceIcon {
+  if (isViatorEmailBooking(b)) {
+    return 'mail'
+  }
+  if (isAppBooking(b)) {
+    return 'smartphone'
+  }
+  return 'globe'
+}
+
+export function bookingSourceAccessibilityLabel(b: Booking): string {
+  if (isViatorEmailBooking(b)) {
+    return 'Viator email booking'
+  }
+  if (isAppBooking(b)) {
+    return 'App booking'
+  }
+  return 'Website booking'
+}
+
+/** List card tint per booking source. */
+export function bookingSourceIconColor(b: Booking): string {
+  if (isViatorEmailBooking(b)) {
+    return '#1E88E5'
+  }
+  if (isAppBooking(b)) {
+    return '#43A047'
+  }
+  return '#F57C00'
+}
+
+/** Header + section bar color on the booking detail screen. */
+export function bookingDetailAccentColor(b: Booking): string {
+  if (isAppBooking(b)) {
+    return '#43A047'
+  }
+  if (isViatorEmailBooking(b)) {
+    return '#1E88E5'
+  }
+  if (isWebsiteBooking(b)) {
+    return '#F57C00'
+  }
+  return '#2196F3'
 }
 
 export function bookingPassengerLabel(b: Booking): string {
