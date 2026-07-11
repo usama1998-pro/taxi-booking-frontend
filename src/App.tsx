@@ -3,7 +3,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { BookingDetailsPage } from '@/components/BookingDetailsPage'
 import { BookingPaymentPage } from '@/components/BookingPaymentPage'
 import { BookingSuccessPage } from '@/components/BookingSuccessPage'
-import { AdminPortal } from '@/components/AdminPortal'
 import {
   createBookingFromForms,
   type BookingSuccessPayload,
@@ -187,9 +186,6 @@ function App() {
     return () => window.clearInterval(id)
   }, [])
 
-  if (pathname.startsWith('/admin')) {
-    return <AdminPortal />
-  }
 
   if (isPaypalReturnProcessing) {
     return (

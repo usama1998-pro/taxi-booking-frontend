@@ -11,7 +11,6 @@ export const BOOKING_ROUTES = {
   details: '/booking/details',
   payment: '/booking/payment',
   successPrefix: '/booking/success',
-  adminPrefix: '/admin',
 } as const
 
 export function savePendingBooking(payload: PendingBookingPayload): void {
