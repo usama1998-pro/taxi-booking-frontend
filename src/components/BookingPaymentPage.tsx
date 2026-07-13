@@ -321,7 +321,7 @@ export function BookingPaymentPage({
     setError(null)
 
     try {
-      const result = await createBookingFromForms(quote, details)
+      const result = await createBookingFromForms(quote, details, estimatedPriceEur)
       onBookingSuccess({
         uuid: result.uuid,
         bookingReference: result.bookingReference,
@@ -335,7 +335,7 @@ export function BookingPaymentPage({
       setIsFinalizing(false)
       throw err
     }
-  }, [details, isFinalizing, onBookingSuccess, quote])
+  }, [details, estimatedPriceEur, isFinalizing, onBookingSuccess, quote])
 
   return (
     <main className="booking-page">

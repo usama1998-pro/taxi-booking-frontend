@@ -20,6 +20,8 @@ export type RouteQuoteResponse = {
   distanceKm: number
   distanceSurchargeEur: number
   baseFareEur: number
+  oneWayPriceEur?: number
+  returnPriceEur?: number
   estimatedPriceEur: number
   durationMinutes: number
 }

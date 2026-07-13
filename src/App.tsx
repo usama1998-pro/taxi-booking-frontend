@@ -152,7 +152,11 @@ function App() {
     void (async () => {
       try {
         await capturePayPalOrder(orderId)
-        const result = await createBookingFromForms(pending.quote, pending.details)
+        const result = await createBookingFromForms(
+          pending.quote,
+          pending.details,
+          pending.estimatedPriceEur,
+        )
         if (cancelled) return
         completeBookingSuccess({
           uuid: result.uuid,

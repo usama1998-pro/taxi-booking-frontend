@@ -2,7 +2,6 @@ import type { QuoteFormValues } from "@/components/QuoteForm";
 import { apiUrl, readApiErrorMessage } from "@/lib/apiBase";
 import { isPickupDatetimeInPast, PICKUP_IN_PAST_MESSAGE } from "@/lib/bookingDateTime";
 import { buildBookingLocations } from "@/lib/bookingLocation";
-import { calculateBookingPrice } from "@/lib/bookingPricing";
 
 /** Driver contact returned when a booking is created with an assigned driver (from DB). */
 export type AssignedDriverSummary = {
@@ -44,6 +43,7 @@ export type BookingDetailsValues = {
 export type PendingBookingPayload = {
   quote: QuoteFormValues;
   details: BookingDetailsValues;
+  /** From `/routing/quote` (DB-backed pricing). */
   estimatedPriceEur: number;
 };
 
@@ -59,43 +59,6 @@ function toIsoOrNow(datetimeLocalValue: string | undefined): string {
     throw new Error("Invalid pickup date and time.");
   }
   return parsed.toISOString();
-}
-
-export function estimatePriceFromPassengersAndLuggage(
-  passengers: number,
-  luggage: number,
-  infantCarrierCount = 0,
-  childSeatCount = 0,
-  boosterCount = 0,
-  isReturnTrip = false,
-): number {
-  return calculateBookingPrice(
-    passengers,
-    luggage,
-    infantCarrierCount,
-    childSeatCount,
-    boosterCount,
-    isReturnTrip,
-  );
-}
-
-export function estimatePrice(
-  values: QuoteFormValues,
-  options?: {
-    infantCarrierCount?: number;
-    childSeatCount?: number;
-    boosterCount?: number;
-  },
-): number {
-  const isReturnTrip = values.tripType === 'return';
-  return estimatePriceFromPassengersAndLuggage(
-    values.passengers,
-    values.luggage,
-    options?.infantCarrierCount ?? 0,
-    options?.childSeatCount ?? 0,
-    options?.boosterCount ?? 0,
-    isReturnTrip,
-  );
 }
 
 function coerceNonEmptyString(value: unknown): string | null {
@@ -144,9 +107,14 @@ function parseAssignedDriver(raw: unknown): AssignedDriverSummary | null {
 export async function createBookingFromForms(
   quote: QuoteFormValues,
   details: BookingDetailsValues,
+  estimatedPriceEur: number,
 ): Promise<CreateBookingResult> {
   const flight = details.flightNumber?.trim() || undefined;
   const { pickupLocation, dropoffLocation } = buildBookingLocations(quote, flight);
+  const price = Math.round(Number(estimatedPriceEur));
+  if (!Number.isFinite(price) || price < 0) {
+    throw new Error("A valid route price is required before booking.");
+  }
 
   const res = await fetch(apiUrl("/bookings"), {
     method: "POST",
@@ -162,11 +130,7 @@ export async function createBookingFromForms(
       pickupLocation,
       dropoffLocation,
       scheduledTime: toIsoOrNow(quote.departureAt),
-      price: estimatePrice(quote, {
-        infantCarrierCount: details.infantCarrierCount ?? 0,
-        childSeatCount: details.childSeatCount ?? 0,
-        boosterCount: details.boosterCount ?? 0,
-      }),
+      price,
       status: "PENDING",
       luggageCount: quote.luggage,
       passengerCount: quote.passengers,
