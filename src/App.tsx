@@ -26,7 +26,10 @@ import { navigateTo, replaceLocation } from '@/lib/bookingNavigation'
 import { capturePayPalOrder } from '@/lib/paymentsApi'
 import { BrandLogoIcon } from '@/components/BrandLogoIcon'
 import { QuoteForm, type QuoteFormValues } from '@/components/QuoteForm'
+import { ContactInquiryForm } from '@/components/ContactInquiryForm'
 import { SiteFooter } from '@/components/SiteFooter'
+import { TransferPackages } from '@/components/TransferPackages'
+import { TravellerReviews } from '@/components/TravellerReviews'
 import { BRAND_NAME } from '@/lib/brandConfig'
 import {
   CONTACT_EMAIL,
@@ -473,6 +476,9 @@ function App() {
         />
       </section>
 
+      <TransferPackages />
+      <TravellerReviews />
+      <ContactInquiryForm />
       <SiteFooter />
     </main>
   )
