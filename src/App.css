@@ -396,7 +396,6 @@
   z-index: 1;
   isolation: isolate;
   background: #f4f6fa;
-  padding-top: clamp(20px, 3vh, 32px);
 }
 
 .content-column::before {
@@ -409,13 +408,6 @@
   top: 0;
   bottom: -28px;
   background: #f4f6fa;
-}
-
-.info-section {
-  display: block;
-  min-width: 0;
-  width: 100%;
-  max-width: none;
 }
 
 .hero-section {
@@ -948,7 +940,8 @@
   min-width: 0;
   min-height: 0;
   position: sticky;
-  top: calc(var(--nav-height) + 14px);
+  /* The nav is not fixed, so a small offset keeps the whole card visible when pinned. */
+  top: clamp(12px, 2vh, 20px);
   z-index: 4;
   display: block;
 }
@@ -963,6 +956,13 @@
 
 .quote-card--return {
   margin-top: clamp(16px, 2vh, 32px);
+}
+
+/* On short screens a pinned card would have its bottom cut off with no way to reach it. */
+@media (max-height: 700px) {
+  .quote-card {
+    position: static;
+  }
 }
 
 .quote-card-inner {
@@ -1426,6 +1426,16 @@
   margin: 0 auto;
   padding-inline: var(--page-gutter);
   box-sizing: border-box;
+  container: packages / inline-size;
+}
+
+.transfer-packages-eyebrow {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #0fb896;
 }
 
 .transfer-packages-title {
@@ -1446,70 +1456,67 @@
   max-width: 62ch;
 }
 
-.transfer-packages-grid {
+.transfer-packages-list {
   margin: 0;
   padding: 0;
   list-style: none;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 20px;
-}
-
-.transfer-package-card {
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  background: #fff;
-  border-radius: 18px;
-  border: 1px solid #dde3ed;
-  box-shadow: 0 10px 28px rgba(21, 32, 50, 0.06);
-  overflow: hidden;
+  gap: 14px;
 }
 
-.transfer-package-image-wrap {
-  aspect-ratio: 16 / 10;
+.transfer-package-row {
+  display: grid;
+  grid-template-columns: clamp(140px, 18%, 190px) minmax(0, 1fr) auto;
+  align-items: stretch;
+  min-height: 148px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #dde3ed;
+  box-shadow: 0 8px 22px rgba(21, 32, 50, 0.05);
+  overflow: hidden;
+  transition: box-shadow 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.transfer-package-row:hover {
+  border-color: #b8c8db;
+  box-shadow: 0 14px 32px rgba(21, 32, 50, 0.11);
+  transform: translateY(-2px);
+}
+
+.transfer-package-media {
+  position: relative;
   overflow: hidden;
   background: #e8eef6;
 }
 
 .transfer-package-image {
-  display: block;
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.35s ease;
 }
 
-.transfer-package-body {
+.transfer-package-row:hover .transfer-package-image {
+  transform: scale(1.06);
+}
+
+.transfer-package-content {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
-  gap: 12px;
-  padding: 22px 20px 22px;
-  min-width: 0;
-  box-sizing: border-box;
-}
-
-.transfer-package-badge {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: #e8f7f3;
-  color: #0fb896;
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-}
-
-.transfer-package-badge-icon {
-  width: 18px;
-  height: 18px;
+  gap: 7px;
+  min-width: 0;
+  padding: 18px clamp(16px, 1.8vw, 24px);
+  box-sizing: border-box;
 }
 
 .transfer-package-name {
   margin: 0;
   color: #1d2a40;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   line-height: 1.25;
   letter-spacing: -0.01em;
@@ -1519,54 +1526,56 @@
   margin: 0;
   color: #3b495e;
   font-size: 14px;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
 .transfer-package-features {
-  margin: 4px 0 0;
+  margin: 3px 0 0;
   padding: 0;
   list-style: none;
-  display: grid;
-  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
 }
 
 .transfer-package-features li {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  color: #3b495e;
-  font-size: 14px;
-  line-height: 1.4;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #52627a;
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 .transfer-package-feature-icon {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
-  margin-top: 1px;
   color: #0fb896;
 }
 
+.transfer-package-action {
+  display: flex;
+  align-items: center;
+  padding: 18px clamp(16px, 1.8vw, 24px) 18px 0;
+}
+
 .transfer-package-cta {
-  margin-top: auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
   box-sizing: border-box;
-  padding: 11px 12px;
+  padding: 11px 20px;
   border-radius: 999px;
   border: 1.5px solid #c5cedb;
   background: #fff;
   color: #152032;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.25;
   text-decoration: none;
   text-align: center;
-  white-space: normal;
+  white-space: nowrap;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
@@ -1576,17 +1585,45 @@
   color: #fff;
 }
 
-@media (max-width: 1100px) {
-  .transfer-packages-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+/*
+ * The list sits in a column whose width is independent of the viewport, so the
+ * row breakpoints have to follow the container rather than the screen.
+ */
+@container packages (max-width: 620px) {
+  .transfer-package-row {
+    grid-template-columns: clamp(112px, 30%, 160px) minmax(0, 1fr);
+  }
+
+  .transfer-package-content {
+    padding-bottom: 12px;
+  }
+
+  .transfer-package-action {
+    grid-column: 2;
+    padding: 0 clamp(16px, 1.8vw, 24px) 18px;
+  }
+
+  .transfer-package-cta {
+    width: 100%;
+  }
+}
+
+@container packages (max-width: 400px) {
+  .transfer-package-row {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .transfer-package-media {
+    aspect-ratio: 16 / 9;
+  }
+
+  .transfer-package-action {
+    grid-column: 1;
   }
 }
 
 @media (max-width: 640px) {
-  .transfer-packages-grid {
-    grid-template-columns: 1fr;
-  }
-
   .transfer-packages-title {
     max-width: none;
   }
@@ -1677,16 +1714,36 @@
 .traveller-reviews-card {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 0;
   flex: 0 0 auto;
   width: min(340px, 78vw);
   min-width: 0;
   background: #fff;
   border-radius: 14px;
-  padding: 24px 22px 22px;
+  padding: 0;
   box-shadow: 0 8px 24px rgba(21, 32, 50, 0.06);
   border: 1px solid #dde3ed;
   box-sizing: border-box;
+  overflow: hidden;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.traveller-reviews-card:hover {
+  border-color: #b8c8db;
+  box-shadow: 0 12px 28px rgba(21, 32, 50, 0.1);
+  transform: translateY(-2px);
+}
+
+.traveller-reviews-card-link {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1 1 auto;
+  padding: 24px 22px 22px;
+  color: inherit;
+  text-decoration: none;
+  box-sizing: border-box;
+  min-height: 100%;
 }
 
 .traveller-reviews-stars {
@@ -1781,6 +1838,41 @@
 
   .traveller-reviews-card {
     scroll-snap-align: start;
+  }
+}
+
+/* ─── Reviews + packages rendered inside the sticky booking column ─── */
+.content-column > .traveller-reviews,
+.content-column > .transfer-packages {
+  background: transparent;
+  border-top: 0;
+  padding: clamp(34px, 4.5vw, 60px) 0;
+}
+
+.content-column > .transfer-packages {
+  border-top: 1px solid #dfe5ee;
+}
+
+.content-column .traveller-reviews-inner,
+.content-column .transfer-packages-inner {
+  max-width: none;
+  margin: 0;
+  padding-inline: 0;
+}
+
+.content-column .traveller-reviews-title,
+.content-column .transfer-packages-title {
+  font-size: clamp(26px, 2.4vw, 34px);
+}
+
+.content-column .traveller-reviews-subtitle,
+.content-column .transfer-packages-subtitle {
+  font-size: clamp(15px, 1.2vw, 16px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content-column .traveller-reviews-marquee {
+    padding-inline: 0;
   }
 }
 
@@ -2315,12 +2407,13 @@
     display: block;
   }
 
-  .content-column {
-    padding-top: 0;
+  /* Let the review carousel run to the screen edges once the grid stacks. */
+  .content-column > .traveller-reviews {
+    margin-inline: -20px;
   }
 
-  .info-section {
-    grid-template-columns: 1fr;
+  .content-column .traveller-reviews-inner {
+    padding-inline: 20px;
   }
 
   .share-rail {
@@ -2414,6 +2507,14 @@
   .layout {
     padding: 0 16px 20px;
     row-gap: 16px;
+  }
+
+  .content-column > .traveller-reviews {
+    margin-inline: -16px;
+  }
+
+  .content-column .traveller-reviews-inner {
+    padding-inline: 16px;
   }
 
   .hero-section {

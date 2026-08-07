@@ -1,5 +1,5 @@
 const VIATOR_REVIEWS_URL =
-  'https://www.viator.com/Barcelona/d562-ttd/Airport-and-Ground-Transfers-in-Barcelona/ct15-tgid1359'
+  'https://www.viator.com/en-GB/tours/Barcelona/Barcelona-Airport-Private-Arrival-Transfer/d562-406570P10'
 
 const REVIEWS = [
   {
@@ -82,14 +82,23 @@ function ReviewCard({
 }) {
   return (
     <li className="traveller-reviews-card" aria-hidden={duplicate || undefined}>
-      <StarRow />
-      <blockquote className="traveller-reviews-quote">
-        <p>&ldquo;{review.quote}&rdquo;</p>
-      </blockquote>
-      <footer className="traveller-reviews-author">
-        <cite className="traveller-reviews-name">{review.name}</cite>
-        <span className="traveller-reviews-location">{review.location}</span>
-      </footer>
+      <a
+        className="traveller-reviews-card-link"
+        href={VIATOR_REVIEWS_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        tabIndex={duplicate ? -1 : undefined}
+        aria-label={`Read ${review.name}'s review on Viator`}
+      >
+        <StarRow />
+        <blockquote className="traveller-reviews-quote">
+          <p>&ldquo;{review.quote}&rdquo;</p>
+        </blockquote>
+        <footer className="traveller-reviews-author">
+          <cite className="traveller-reviews-name">{review.name}</cite>
+          <span className="traveller-reviews-location">{review.location}</span>
+        </footer>
+      </a>
     </li>
   )
 }

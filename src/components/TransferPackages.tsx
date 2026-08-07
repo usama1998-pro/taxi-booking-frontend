@@ -5,9 +5,19 @@ const PACKAGES = [
       'Private transfer from Barcelona city to El Prat (BCN). Fixed fare, flight-aware timing, and a clean official taxi.',
     features: ['Hotel or any city pickup', 'Fixed prepaid fare', 'Luggage included'],
     cta: 'Book city–airport',
-    href: 'https://www.viator.com/en-GB/search/406570P11?mcid=70066',
+    href: 'https://www.viator.com/en-GB/search/406570P10?mcid=70066',
     image: '/assets/airport.jpg',
     imagePosition: 'center 35%',
+  },
+  {
+    title: 'Airport to City',
+    description:
+      'Private transfer from Barcelona El Prat (BCN) to your hotel or any city address. Meet and greet in arrivals with flight tracking.',
+    features: ['Name-board meet & greet', '60 minutes free waiting', 'Luggage included'],
+    cta: 'Book airport–city',
+    href: 'https://www.viator.com/en-GB/search/406570P11?mcid=70066',
+    image: '/assets/airport.jpg',
+    imagePosition: 'center 40%',
   },
   {
     title: 'City to Cruise Port',
@@ -59,6 +69,7 @@ export function TransferPackages() {
   return (
     <section className="transfer-packages" aria-labelledby="transfer-packages-heading">
       <div className="transfer-packages-inner">
+        <p className="transfer-packages-eyebrow">Popular routes</p>
         <h2 id="transfer-packages-heading" className="transfer-packages-title">
           Private transfers, never shared shuttles.
         </h2>
@@ -67,10 +78,10 @@ export function TransferPackages() {
           detours, no meter running in traffic.
         </p>
 
-        <ul className="transfer-packages-grid">
+        <ul className="transfer-packages-list">
           {PACKAGES.map((pkg) => (
-            <li key={pkg.href} className="transfer-package-card">
-              <div className="transfer-package-image-wrap">
+            <li key={pkg.href} className="transfer-package-row">
+              <div className="transfer-package-media">
                 <img
                   className="transfer-package-image"
                   src={pkg.image}
@@ -81,11 +92,7 @@ export function TransferPackages() {
                 />
               </div>
 
-              <div className="transfer-package-body">
-                <span className="transfer-package-badge" aria-hidden="true">
-                  <CheckIcon className="transfer-package-badge-icon" />
-                </span>
-
+              <div className="transfer-package-content">
                 <h3 className="transfer-package-name">{pkg.title}</h3>
                 <p className="transfer-package-desc">{pkg.description}</p>
 
@@ -97,7 +104,9 @@ export function TransferPackages() {
                     </li>
                   ))}
                 </ul>
+              </div>
 
+              <div className="transfer-package-action">
                 <a
                   className="transfer-package-cta"
                   href={pkg.href}

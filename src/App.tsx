@@ -425,45 +425,8 @@ function App() {
         </section>
 
         <div className="content-column">
-          <section className="info-section">
-            <article className="article-card">
-              <h2>We provide an easy, friendly and personalized travel experience</h2>
-              <p>
-                We are an affordable airport transfers company to and from Barcelona International
-                El Prat Airport. We also provide inter-city transfers from Barcelona to any city in
-                Spain and across the Europe by private taxi.
-              </p>
-              <p>
-                If you are planning a trip to Barcelona either alone, with family or for business,
-                don&apos;t worry, we&apos;ve got you covered. We want you to enjoy what really
-                matters and gives you a stress-free travel experience.
-              </p>
-              <p>
-                Our qualified and local English-speaking drivers will ensure that you arrive safely
-                to your hotel or destination.
-              </p>
-              <p>
-                With {BRAND_NAME} you can get everything at one place whether you need a taxi to
-                pick you up quickly, a transfer to or from the airport, or a premium taxi and
-                professional chauffeur to get you to your next meeting.
-              </p>
-              <ul className="service-highlights">
-                <li>24/7 service and customer support in Barcelona.</li>
-                <li>Pickup in the arrival&apos;s hall of the airport. (Meet &amp; Greet)</li>
-                <li>Premium official Barcelona taxi sedans and minivans.</li>
-                <li>Fixed and prepaid tariff on all rides.</li>
-              </ul>
-              <p>
-                Your chauffeur will be waiting for you upon arrival at Barcelona International El
-                Prat Airport with a name sign. Our driver will track the flight. If it&apos;s
-                delayed, they&apos;ll wait.
-              </p>
-              <p>
-                All of our rates are fixed and prepaid so you will be able to calculate how much it
-                will exactly cost you for your trip.
-              </p>
-            </article>
-          </section>
+          <TravellerReviews />
+          <TransferPackages />
         </div>
 
         <QuoteForm
@@ -476,8 +439,6 @@ function App() {
         />
       </section>
 
-      <TransferPackages />
-      <TravellerReviews />
       <ContactInquiryForm />
       <SiteFooter />
     </main>
