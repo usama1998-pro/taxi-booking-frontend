@@ -27,6 +27,7 @@ import { capturePayPalOrder } from '@/lib/paymentsApi'
 import { BrandLogoIcon } from '@/components/BrandLogoIcon'
 import { QuoteForm, type QuoteFormValues } from '@/components/QuoteForm'
 import { ContactInquiryForm } from '@/components/ContactInquiryForm'
+import { ServiceIntro } from '@/components/ServiceIntro'
 import { SiteFooter } from '@/components/SiteFooter'
 import { TransferPackages } from '@/components/TransferPackages'
 import { TravellerReviews } from '@/components/TravellerReviews'
@@ -439,6 +440,7 @@ function App() {
         />
       </section>
 
+      <ServiceIntro />
       <ContactInquiryForm />
       <SiteFooter />
     </main>
