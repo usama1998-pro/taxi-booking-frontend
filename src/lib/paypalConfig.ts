@@ -1,5 +1,5 @@
 /** Set to true to show PayPal checkout again. */
-export const PAYPAL_ENABLED = false
+export const PAYPAL_ENABLED = true
 
 /** Public PayPal client id from Vite env (embedded at build time). */
 export function getPayPalClientId(): string | undefined {
