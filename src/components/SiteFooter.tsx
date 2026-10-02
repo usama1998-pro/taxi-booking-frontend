@@ -1,5 +1,6 @@
 import { BrandLogoIcon } from '@/components/BrandLogoIcon'
 import { BRAND_NAME } from '@/lib/brandConfig'
+import { isPayPalConfigured } from '@/lib/paypalConfig'
 
 const PAYMENT_METHODS = [
   { id: 'stripe', name: 'Stripe', src: '/assets/payments/stripe.svg' },
@@ -10,6 +11,9 @@ const PAYMENT_METHODS = [
 
 export function SiteFooter() {
   const year = new Date().getFullYear()
+  const paymentMethods = PAYMENT_METHODS.filter(
+    (method) => method.id !== 'paypal' || isPayPalConfigured(),
+  )
 
   return (
     <footer className="site-footer">
@@ -31,7 +35,7 @@ export function SiteFooter() {
           <div className="footer-payments">
             <h2 className="footer-heading">Payment methods accepted</h2>
             <ul className="footer-payment-list">
-              {PAYMENT_METHODS.map(({ id, name, src }) => (
+              {paymentMethods.map(({ id, name, src }) => (
                 <li key={id} className="footer-payment-item">
                   <span className="footer-payment-badge" title={name}>
                     <img
@@ -49,8 +53,9 @@ export function SiteFooter() {
               ))}
             </ul>
             <p className="footer-payment-note">
-              Secure checkout powered by Stripe and PayPal. Major cards including Visa and Mastercard
-              are accepted.
+              {isPayPalConfigured()
+                ? 'Secure checkout powered by Stripe and PayPal. Major cards including Visa and Mastercard are accepted.'
+                : 'Secure checkout powered by Stripe. Major cards including Visa and Mastercard are accepted.'}
             </p>
           </div>
         </div>

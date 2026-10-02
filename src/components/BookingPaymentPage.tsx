@@ -362,18 +362,20 @@ export function BookingPaymentPage({
           </p>
 
           <div className="booking-payment-methods" aria-busy={isFinalizing}>
-            <section className="booking-payment-method" aria-labelledby="booking-payment-paypal">
-              <h2 id="booking-payment-paypal" className="booking-payment-method-title">
-                PayPal
-              </h2>
-              <PayPalCheckout
-                amountEur={estimatedPriceEur}
-                description={paymentDescription}
-                disabled={isFinalizing}
-                onPaid={finalizeBooking}
-                onError={setError}
-              />
-            </section>
+            {isPayPalConfigured() ? (
+              <section className="booking-payment-method" aria-labelledby="booking-payment-paypal">
+                <h2 id="booking-payment-paypal" className="booking-payment-method-title">
+                  PayPal
+                </h2>
+                <PayPalCheckout
+                  amountEur={estimatedPriceEur}
+                  description={paymentDescription}
+                  disabled={isFinalizing}
+                  onPaid={finalizeBooking}
+                  onError={setError}
+                />
+              </section>
+            ) : null}
 
             <section className="booking-payment-method" aria-labelledby="booking-payment-stripe">
               <h2 id="booking-payment-stripe" className="booking-payment-method-title">
@@ -396,7 +398,7 @@ export function BookingPaymentPage({
                 </Elements>
               ) : (
                 <p className="booking-payment-unavailable">
-                  Card payment is temporarily unavailable. Try PayPal or go back and try again.
+                  Card payment is temporarily unavailable. Please go back and try again.
                 </p>
               )}
             </section>
