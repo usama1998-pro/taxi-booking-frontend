@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
+import { BookingConfirmingScreen } from '@/components/BookingConfirmingScreen'
 import { BookingDetailsPage } from '@/components/BookingDetailsPage'
 import { BookingPaymentPage } from '@/components/BookingPaymentPage'
 import { BookingSuccessPage } from '@/components/BookingSuccessPage'
@@ -196,14 +197,16 @@ function App() {
 
 
   if (isPaypalReturnProcessing) {
+    const pending = loadPendingBooking()
+    const routeLabel =
+      pending?.quote?.pickup && pending?.quote?.dropoff
+        ? `${pending.quote.pickup} → ${pending.quote.dropoff}`
+        : undefined
     return (
-      <main className="booking-page">
-        <section className="booking-container">
-          <p className="booking-payment-loading booking-field-full">
-            Payment received — confirming your booking…
-          </p>
-        </section>
-      </main>
+      <BookingConfirmingScreen
+        subtitle="PayPal payment received. We are confirming your booking and sending emails. Please keep this page open."
+        routeLabel={routeLabel}
+      />
     )
   }
 

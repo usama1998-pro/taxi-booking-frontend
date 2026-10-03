@@ -4103,3 +4103,247 @@
     min-width: 140px;
   }
 }
+
+/* --- Booking confirming loader --- */
+@keyframes booking-confirming-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes booking-confirming-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes booking-confirming-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(15, 184, 150, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 14px rgba(15, 184, 150, 0);
+  }
+}
+
+.booking-confirming {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+  box-sizing: border-box;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% -10%, rgba(15, 184, 150, 0.18), transparent 55%),
+    linear-gradient(180deg, #f4faf8 0%, #eef2f6 55%, #e8eef5 100%);
+  overflow: hidden;
+}
+
+.booking-confirming__glow {
+  position: absolute;
+  inset: auto 10% -20% 10%;
+  height: 40%;
+  background: radial-gradient(circle, rgba(15, 184, 150, 0.12), transparent 70%);
+  pointer-events: none;
+}
+
+.booking-confirming__card {
+  position: relative;
+  width: min(100%, 440px);
+  padding: clamp(1.6rem, 4vw, 2.25rem);
+  border-radius: 1.35rem;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 22px 50px rgba(15, 23, 42, 0.1),
+    0 4px 14px rgba(15, 23, 42, 0.04);
+  text-align: center;
+  animation: booking-confirming-enter 0.45s ease-out both;
+}
+
+.booking-confirming__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 1.35rem;
+}
+
+.booking-confirming__brand-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.7rem;
+  background: rgba(15, 184, 150, 0.12);
+  color: #0a8f74;
+}
+
+.booking-confirming__brand-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #0f172a;
+}
+
+.booking-confirming__spinner-wrap {
+  position: relative;
+  width: 4.75rem;
+  height: 4.75rem;
+  margin: 0 auto 1.25rem;
+}
+
+.booking-confirming__spinner {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid rgba(15, 184, 150, 0.16);
+  border-top-color: #0fb896;
+  animation: booking-confirming-spin 0.85s linear infinite;
+}
+
+.booking-confirming__spinner-core {
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background: linear-gradient(160deg, rgba(15, 184, 150, 0.18), rgba(15, 184, 150, 0.05));
+  animation: booking-confirming-pulse 1.8s ease-in-out infinite;
+}
+
+.booking-confirming__eyebrow {
+  margin: 0 0 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #0a8f74;
+}
+
+.booking-confirming__title {
+  margin: 0 0 0.55rem;
+  font-size: clamp(1.35rem, 3.5vw, 1.65rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.booking-confirming__lead {
+  margin: 0 auto 1.15rem;
+  max-width: 28rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: rgba(15, 23, 42, 0.72);
+}
+
+.booking-confirming__route {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin: 0 0 1.35rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.85rem;
+  background: #f1f5f9;
+  text-align: left;
+}
+
+.booking-confirming__route-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.booking-confirming__route-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.booking-confirming__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  text-align: left;
+}
+
+.booking-confirming__step {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid transparent;
+  color: #94a3b8;
+  transition:
+    color 0.25s ease,
+    background 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.booking-confirming__step.is-current {
+  color: #0f172a;
+  background: rgba(15, 184, 150, 0.08);
+  border-color: rgba(15, 184, 150, 0.28);
+}
+
+.booking-confirming__step.is-done {
+  color: #0a8f74;
+  background: rgba(15, 184, 150, 0.06);
+}
+
+.booking-confirming__step-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.booking-confirming__step.is-current .booking-confirming__step-marker {
+  background: #0fb896;
+}
+
+.booking-confirming__step.is-done .booking-confirming__step-marker {
+  background: #0fb896;
+  color: #fff;
+}
+
+.booking-confirming__dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: #94a3b8;
+}
+
+.booking-confirming__step.is-current .booking-confirming__dot {
+  background: #fff;
+}
+
+.booking-confirming__check {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.booking-confirming__step-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}

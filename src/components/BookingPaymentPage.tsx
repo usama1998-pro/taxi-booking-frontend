@@ -8,6 +8,7 @@ import {
 import { loadStripe, type StripeElementsOptions } from '@stripe/stripe-js'
 import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js'
 
+import { BookingConfirmingScreen } from '@/components/BookingConfirmingScreen'
 import { BrandLogoIcon } from '@/components/BrandLogoIcon'
 import { Button } from '@/components/ui/button'
 import {
@@ -337,6 +338,15 @@ export function BookingPaymentPage({
     }
   }, [details, estimatedPriceEur, isFinalizing, onBookingSuccess, quote])
 
+  if (isFinalizing) {
+    return (
+      <BookingConfirmingScreen
+        subtitle="Payment received. We are creating your booking and sending confirmation emails. Please keep this page open."
+        routeLabel={`${quote.pickup} → ${quote.dropoff}`}
+      />
+    )
+  }
+
   return (
     <main className="booking-page">
       <header className="booking-page-nav">
@@ -361,7 +371,7 @@ export function BookingPaymentPage({
             Pay the estimated fare below. Your booking is confirmed after payment succeeds.
           </p>
 
-          <div className="booking-payment-methods" aria-busy={isFinalizing}>
+          <div className="booking-payment-methods">
             {isPayPalConfigured() ? (
               <section className="booking-payment-method" aria-labelledby="booking-payment-paypal">
                 <h2 id="booking-payment-paypal" className="booking-payment-method-title">
@@ -370,7 +380,7 @@ export function BookingPaymentPage({
                 <PayPalCheckout
                   amountEur={estimatedPriceEur}
                   description={paymentDescription}
-                  disabled={isFinalizing}
+                  disabled={false}
                   onPaid={finalizeBooking}
                   onError={setError}
                 />
@@ -391,7 +401,7 @@ export function BookingPaymentPage({
               ) : stripeOptions && stripePromise ? (
                 <Elements stripe={stripePromise} options={stripeOptions}>
                   <StripeCardCheckout
-                    disabled={isFinalizing}
+                    disabled={false}
                     onPaid={finalizeBooking}
                     onError={setError}
                   />
@@ -413,9 +423,6 @@ export function BookingPaymentPage({
             <p className="booking-error booking-field-full" role="alert">
               {error}
             </p>
-          ) : null}
-          {isFinalizing ? (
-            <p className="booking-payment-loading booking-field-full">Confirming your booking…</p>
           ) : null}
         </div>
 
